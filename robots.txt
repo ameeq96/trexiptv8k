@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://trexiptv8k.store/sitemap.xml
