@@ -2,6 +2,74 @@ const isLocalPage = ['http:', 'https:'].includes(globalThis.location?.protocol)
   && ['localhost', '127.0.0.1', '[::1]'].includes(globalThis.location?.hostname);
 export const API_ORIGIN = isLocalPage ? 'http://127.0.0.1:8001' : 'https://opplexiptv.com';
 
+export const SUPPORTED_LOCALES = ['en', 'es', 'fr', 'it', 'nl', 'pt', 'ru', 'ur', 'ar', 'hi'];
+export function localeFromPath(path = '/') {
+  const segment = path.split('/')[1];
+  return SUPPORTED_LOCALES.includes(segment) ? segment : 'en';
+}
+const activeLocale = localeFromPath(globalThis.location?.pathname);
+export const EN_UI = {
+  tooMany: 'Too many attempts. Please wait a little before trying again.',
+  conflict: 'An earlier request may already be saved. Close this form and reopen it if you need to change or resend your details.',
+  saveFailed: 'We could not save your enquiry. Please retry or use the main contact page.',
+  unconfirmed: 'Your enquiry was not confirmed as saved. Please retry.',
+  measurementOn: 'Optional usage measurement is on for this website.',
+  measurementOff: 'Optional usage measurement is off for this website.',
+  saveWhatsApp: 'Save and open WhatsApp',
+  saveChat: 'Save and open live chat',
+  consentWhatsApp: 'I agree that Opplex IPTV may store these details and contact me on WhatsApp about this enquiry, not for marketing.',
+  consentChat: 'I agree that Opplex IPTV may store these details and handle my live-chat enquiry. This does not give permission for WhatsApp contact.',
+  phoneInvalid: 'Enter a phone number with 8–15 digits (0–9), including your country code.',
+  required: 'Please complete this field.', emailInvalid: 'Enter a valid email address.',
+  consentRequired: 'Please confirm contact permission to continue.', fieldInvalid: 'Please check this field.',
+  saving: 'Saving your enquiry…',
+  saved: 'Your enquiry is saved.',
+  invalidField: 'Please check the {field} field and try again.',
+  field_name: 'name', field_email: 'email', field_phone: 'phone', field_message: 'message', field_contact_consent: 'contact permission',
+  saveTimeout: 'Saving took too long. Please retry; the same request will not create a duplicate.',
+  chatFailed: 'Chat could not load. Tap the chat icon to retry, or use WhatsApp.',
+  chatSlow: 'Chat is taking longer to load. You can use WhatsApp for support.',
+  chatLoading: 'Chat is still loading. You can use WhatsApp for support.',
+  chatOpening: 'Opening live chat…',
+  terms: 'Terms of service', privacy: 'Privacy policy', refund: 'Refund policy',
+  compare: 'Compare the full term',
+  equivalentNote: 'Monthly equivalent = plan total ÷ months. This is a comparison only, not monthly billing. Check the final amount and any fees at checkout.',
+  comparisonRegion: 'Plan comparison; scroll horizontally if needed',
+  comparisonCaption: '{provider} · current available plans',
+  term: 'Term', total: 'Plan total', equivalent: 'Monthly equivalent', connections: 'Connections',
+  confirmSupport: 'Confirm with support',
+  fullPlan: 'For the full {duration} plan',
+  finalFees: 'Review the final amount and any fees at checkout',
+  connectionCount: 'Simultaneous connections: {count}',
+  confirmConnections: 'Confirm the connection allowance with support',
+  checkout: 'Continue to checkout', checkoutLabel: 'Continue to checkout: {provider}, {duration}, {price}',
+  catalogUnavailable: 'Catalog unavailable', availability: 'Check availability with support',
+  deviceCheck: 'Check your exact device and player with support before purchasing. A listed device is not a compatibility guarantee.',
+  deviceContact: 'Contact support to check your device.',
+  deviceError: 'Device information is temporarily unavailable. Contact support for help.',
+  loadingPlans: 'Loading current plans', loadingBrand: 'Loading current brand plans from Opplex IPTV…',
+  connecting: 'Connecting to catalog', loadingDevices: 'Loading device information…',
+  missingBrand: 'This page has no configured brand. Please contact support.',
+  noPlans: 'No available plans for this brand right now. Please retry or contact support.',
+  currentBrand: 'Current brand', plansAvailable: '{provider} · available plans: {count}',
+  connected: 'Catalog connected', priceNote: 'Current catalog prices. Review the final total and any fees at checkout.',
+  currentPlan: '{duration} · current plan', pricesError: 'We could not load current prices. Please retry or contact support.',
+};
+let languageData = { ui: {}, content: null };
+if (typeof document !== 'undefined' && activeLocale !== 'en') {
+  try {
+    const data = JSON.parse(document.getElementById('landing-language-data')?.textContent || 'null');
+    if (data?.locale === activeLocale && data.ui && typeof data.ui === 'object') languageData = data;
+  } catch {}
+}
+export function translate(key, values = {}) {
+  const message = typeof languageData.ui[key] === 'string' ? languageData.ui[key] : EN_UI[key] ?? key;
+  return message.replace(/\{([a-z]+)\}/g, (match, name) => Object.hasOwn(values, name) ? String(values[name]) : match);
+}
+function durationText(months) {
+  return new Intl.NumberFormat(activeLocale, { style: 'unit', unit: 'month', unitDisplay: 'long' }).format(months);
+}
+
 const BRAND_BY_SOURCE = {
   trexiptv8k: 'trex',
   'opplexiptv-store': 'opplex',
@@ -48,7 +116,7 @@ export function availablePlans(rows) {
 }
 
 export function money(amount, currency) {
-  return new Intl.NumberFormat('en', { style: 'currency', currency, currencyDisplay: 'code' }).format(amount);
+  return new Intl.NumberFormat(activeLocale, { style: 'currency', currency, currencyDisplay: 'code' }).format(amount);
 }
 
 export async function getApiData(path, signal) {
@@ -108,10 +176,10 @@ async function postLanding(path, data, keepalive = false) {
     });
     if (!response.ok) {
       const error = new Error(response.status === 429
-        ? 'Too many attempts. Please wait a little before trying again.'
+        ? translate('tooMany')
         : response.status === 409
-          ? 'An earlier request may already be saved. Close this form and reopen it if you need to change or resend your details.'
-        : 'We could not save your enquiry. Please retry or use the main contact page.');
+          ? translate('conflict')
+        : translate('saveFailed'));
       if (response.status === 422) {
         const body = await response.json().catch(() => ({}));
         error.fields = body.errors;
@@ -119,7 +187,7 @@ async function postLanding(path, data, keepalive = false) {
       throw error;
     }
     const body = await response.json();
-    if (body.ok !== true) throw new Error('Your enquiry was not confirmed as saved. Please retry.');
+    if (body.ok !== true) throw new Error(translate('unconfirmed'));
   } finally {
     clearTimeout(timeout);
   }
@@ -186,8 +254,8 @@ function startExperience() {
 
   function consentStatus() {
     byId('analytics-consent-status').textContent = analyticsAllowed
-      ? 'Optional usage measurement is on for this website.'
-      : 'Optional usage measurement is off for this website.';
+      ? translate('measurementOn')
+      : translate('measurementOff');
   }
 
   function chooseAnalytics(allowed) {
@@ -224,10 +292,10 @@ function startExperience() {
     eventId = newRequestId();
     status.textContent = '';
     status.dataset.error = 'false';
-    submit.textContent = nextChannel === 'whatsapp' ? 'Save and open WhatsApp' : 'Save and open live chat';
+    submit.textContent = nextChannel === 'whatsapp' ? translate('saveWhatsApp') : translate('saveChat');
     byId('contact-consent-copy').textContent = nextChannel === 'whatsapp'
-      ? 'I agree that Opplex IPTV may store these details and contact me on WhatsApp about this enquiry, not for marketing.'
-      : 'I agree that Opplex IPTV may store these details and handle my live-chat enquiry. This does not give permission for WhatsApp contact.';
+      ? translate('consentWhatsApp')
+      : translate('consentChat');
     dialog.showModal();
     byId('contact-name').focus();
   }
@@ -238,13 +306,24 @@ function startExperience() {
     if (!pending) form.reset();
     opener?.focus();
   });
+  form.addEventListener('invalid', event => {
+    const field = event.target;
+    if (typeof field.setCustomValidity !== 'function') return;
+    const key = field.validity.valueMissing ? (field.type === 'checkbox' ? 'consentRequired' : 'required')
+      : field.type === 'email' && field.validity.typeMismatch ? 'emailInvalid' : 'fieldInvalid';
+    field.setCustomValidity(translate(key));
+  }, true);
+  const clearValidity = event => event.target.setCustomValidity?.('');
+  form.addEventListener('input', clearValidity);
+  form.addEventListener('change', clearValidity);
+  form.addEventListener('reset', () => Array.from(form.elements).forEach(field => field.setCustomValidity?.('')));
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (pending || !form.reportValidity()) return;
     const fields = new FormData(form);
     const phone = String(fields.get('phone') || '').trim();
     if (!/^[+\d\s()-]+$/.test(phone) || !/^\d{8,15}$/.test(phone.replace(/\D/g, ''))) {
-      status.textContent = 'Enter a phone number with 8–15 digits, including your country code.';
+      status.textContent = translate('phoneInvalid');
       status.dataset.error = 'true';
       byId('contact-phone').focus();
       return;
@@ -252,7 +331,7 @@ function startExperience() {
     pending = true;
     submit.disabled = true;
     form.setAttribute('aria-busy', 'true');
-    status.textContent = 'Saving your enquiry…';
+    status.textContent = translate('saving');
     status.dataset.error = 'false';
     const payload = {
       brand, event_id: eventId, name: String(fields.get('name') || '').trim(),
@@ -266,15 +345,15 @@ function startExperience() {
       await postLanding('leads', payload);
       const onSaved = complete;
       const shouldOpen = dialog.open && typeof onSaved === 'function';
-      status.textContent = 'Your enquiry is saved.';
+      status.textContent = translate('saved');
       form.reset();
       dialog.close();
       if (shouldOpen) onSaved();
     } catch (error) {
       const invalidField = ['name', 'email', 'phone', 'message', 'contact_consent'].find(key => error.fields?.[key]);
       status.textContent = invalidField
-        ? `Please check the ${invalidField.replace('_', ' ')} field and try again.`
-        : (error.name === 'AbortError' ? 'Saving took too long. Please retry; the same request will not create a duplicate.' : error.message);
+        ? translate('invalidField', { field: translate(`field_${invalidField}`) })
+        : (error.name === 'AbortError' ? translate('saveTimeout') : error instanceof TypeError || error instanceof SyntaxError ? translate('saveFailed') : error.message);
       status.dataset.error = 'true';
       if (invalidField) form.elements.namedItem(invalidField)?.focus();
     } finally {
@@ -371,14 +450,14 @@ function startSupport(requestContact) {
       clearTimeout(timer);
       launcher.disabled = false;
       launcher.hidden = false;
-      showStatus('Chat could not load. Tap the chat icon to retry, or use WhatsApp.');
+      showStatus(translate('chatFailed'));
       script.remove();
     };
     timer = setTimeout(() => {
       if (ready) return;
       launcher.disabled = false;
       launcher.hidden = false;
-      showStatus('Chat is taking longer to load. You can use WhatsApp for support.');
+      showStatus(translate('chatSlow'));
     }, 15000);
     document.head.appendChild(script);
   }
@@ -391,11 +470,11 @@ function startSupport(requestContact) {
         return;
       }
       if (loading) {
-        showStatus('Chat is still loading. You can use WhatsApp for support.');
+        showStatus(translate('chatLoading'));
         return;
       }
       launcher.disabled = true;
-      showStatus('Opening live chat…');
+      showStatus(translate('chatOpening'));
       loadWidget();
     });
   });
@@ -439,7 +518,8 @@ function startLanding(experience) {
     if (Array.isArray(data.links?.legal)) {
       const anchors = data.links.legal.flatMap(link => {
         if (!link || !allowed.includes(link.url) || typeof link.label !== 'string') return [];
-        const anchor = element('a', '', link.label);
+        const legalKeys = { '/terms-of-service': 'terms', '/privacy-policy': 'privacy', '/refund-policy': 'refund' };
+        const anchor = element('a', '', translate(legalKeys[link.url]));
         anchor.href = centralUrl(link.url);
         return [anchor];
       });
@@ -509,20 +589,20 @@ function startLanding(experience) {
     byId('plan-comparison')?.remove();
     const section = element('section', 'plan-comparison');
     section.id = 'plan-comparison';
-    const heading = element('h3', '', 'Compare the full term');
+    const heading = element('h3', '', translate('compare'));
     heading.id = 'plan-comparison-heading';
     section.setAttribute('aria-labelledby', heading.id);
-    section.append(heading, element('p', '', 'Monthly equivalent = plan total ÷ months. This is a comparison only, not monthly billing. Check the final amount and any fees at checkout.'));
+    section.append(heading, element('p', '', translate('equivalentNote')));
     const scroll = element('div', 'comparison-scroll');
     scroll.tabIndex = 0;
     scroll.setAttribute('role', 'region');
-    scroll.setAttribute('aria-label', 'Plan comparison; scroll horizontally if needed');
+    scroll.setAttribute('aria-label', translate('comparisonRegion'));
     const table = element('table');
-    table.append(element('caption', '', `${providerName} · current available plans`));
+    table.append(element('caption', '', translate('comparisonCaption', { provider: providerName })));
     const head = element('thead');
     const labels = element('tr');
-    ['Term', 'Plan total', 'Monthly equivalent', 'Connections'].forEach(label => {
-      const cell = element('th', '', label);
+    ['term', 'total', 'equivalent', 'connections'].forEach(label => {
+      const cell = element('th', '', translate(label));
       cell.scope = 'col';
       labels.append(cell);
     });
@@ -530,11 +610,11 @@ function startLanding(experience) {
     const body = element('tbody');
     plans.forEach(plan => {
       const row = element('tr');
-      const term = element('th', '', `${plan.duration_months} ${plan.duration_months === 1 ? 'month' : 'months'}`);
+      const term = element('th', '', durationText(plan.duration_months));
       term.scope = 'row';
       row.append(term, element('td', '', plan.price),
         element('td', '', money(Number(plan.price_amount) / plan.duration_months, plan.currency)),
-        element('td', '', Number.isSafeInteger(plan.max_devices) && plan.max_devices > 0 ? String(plan.max_devices) : 'Confirm with support'));
+        element('td', '', Number.isSafeInteger(plan.max_devices) && plan.max_devices > 0 ? new Intl.NumberFormat(activeLocale).format(plan.max_devices) : translate('confirmSupport')));
       body.append(row);
     });
     table.append(head, body);
@@ -545,20 +625,20 @@ function startLanding(experience) {
 
   function renderPlan(plan, providerName) {
     const card = element('article', 'plan-card');
-    const duration = `${plan.duration_months} ${plan.duration_months === 1 ? 'month' : 'months'}`;
+    const duration = durationText(plan.duration_months);
     card.append(element('p', 'plan-provider', providerName), element('h3', 'plan-duration', duration),
-      element('p', 'plan-price', plan.price), element('p', 'plan-description', `For the full ${duration} plan`));
+      element('p', 'plan-price', plan.price), element('p', 'plan-description', translate('fullPlan', { duration })));
     const facts = element('ul', 'plan-features');
-    facts.append(element('li', '', 'Review the final amount and any fees at checkout'));
+    facts.append(element('li', '', translate('finalFees')));
     facts.append(element('li', '', Number.isSafeInteger(plan.max_devices) && plan.max_devices > 0
-      ? `${plan.max_devices} simultaneous ${plan.max_devices === 1 ? 'connection' : 'connections'}`
-      : 'Confirm the connection allowance with support'));
+      ? translate('connectionCount', { count: new Intl.NumberFormat(activeLocale).format(plan.max_devices) })
+      : translate('confirmConnections')));
     card.append(facts);
-    const checkout = element('a', 'button button-primary plan-cta', 'Continue to checkout');
+    const checkout = element('a', 'button button-primary plan-cta', translate('checkout'));
     checkout.href = experience.checkoutLink(plan.id, source);
     checkout.dataset.checkoutPackage = String(plan.id);
     checkout.dataset.checkoutSource = source;
-    checkout.setAttribute('aria-label', `Continue to checkout: ${providerName}, ${duration}, ${plan.price}`);
+    checkout.setAttribute('aria-label', translate('checkoutLabel', { provider: providerName, duration, price: plan.price }));
     checkout.addEventListener('click', () => experience.track('checkout_clicked', plan.id));
     card.append(checkout);
     return card;
@@ -567,14 +647,14 @@ function startLanding(experience) {
   function showPlanError(message) {
     byId('plan-grid').setAttribute('aria-busy', 'false');
     byId('catalog-status').textContent = message;
-    byId('api-status').textContent = 'Catalog unavailable';
-    byId('hero-plan').textContent = 'Check availability with support';
+    byId('api-status').textContent = translate('catalogUnavailable');
+    byId('hero-plan').textContent = translate('availability');
     byId('retry-catalog').hidden = false;
   }
 
   async function loadDevices(signal, currentVersion) {
     try {
-      const data = await getApiData('configure?locale=en', signal);
+      const data = await getApiData(`configure?locale=${activeLocale}`, signal);
       if (currentVersion !== version) return;
       const list = byId('device-list');
       list.replaceChildren();
@@ -582,10 +662,10 @@ function startLanding(experience) {
         if (typeof device?.name === 'string') list.append(element('span', 'device-chip', device.name));
       });
       byId('devices-status').textContent = list.childElementCount
-        ? 'Check your exact device and player with support before purchasing. A listed device is not a compatibility guarantee.'
-        : 'Contact support to check your device.';
+        ? translate('deviceCheck')
+        : translate('deviceContact');
     } catch {
-      if (currentVersion === version) byId('devices-status').textContent = 'Device information is temporarily unavailable. Contact support for help.';
+      if (currentVersion === version) byId('devices-status').textContent = translate('deviceError');
     }
   }
 
@@ -597,46 +677,46 @@ function startLanding(experience) {
     byId('plan-grid').setAttribute('aria-busy', 'true');
     byId('plan-comparison')?.remove();
     byId('hero-price').textContent = '—';
-    byId('hero-plan').textContent = 'Loading current plans';
+    byId('hero-plan').textContent = translate('loadingPlans');
     byId('hero-provider').textContent = '';
     byId('plan-summary').textContent = '';
     byId('provider-options').replaceChildren();
     byId('retry-catalog').hidden = true;
-    byId('catalog-status').textContent = 'Loading current brand plans from Opplex IPTV…';
-    byId('api-status').textContent = 'Connecting to catalog';
-    byId('devices-status').textContent = 'Loading device information…';
-    renderContent(null);
+    byId('catalog-status').textContent = translate('loadingBrand');
+    byId('api-status').textContent = translate('connecting');
+    byId('devices-status').textContent = translate('loadingDevices');
+    renderContent(languageData.content);
     if (!brand) {
-      showPlanError('This page has no configured brand. Please contact support.');
+      showPlanError(translate('missingBrand'));
       byId('retry-catalog').hidden = true;
       return;
     }
     void loadDevices(request.signal, currentVersion);
     try {
-      const data = await getApiData(`brands/${brand}/content?locale=en`, request.signal);
+      const data = await getApiData(`brands/${brand}/content?locale=${activeLocale}`, request.signal);
       if (currentVersion !== version) return;
       if (data.brand !== brand || typeof data.provider_name !== 'string' || !data.provider_name.trim()) throw new Error('Unexpected catalog');
       renderSupport(data);
-      renderContent(data.content);
+      renderContent(data.locale === activeLocale ? data.content : languageData.content);
       const plans = availablePlans(data.packages);
       if (!plans.length) {
-        showPlanError('No available plans for this brand right now. Please retry or contact support.');
+        showPlanError(translate('noPlans'));
         return;
       }
       const providerName = data.provider_name.trim();
-      byId('provider-options').setAttribute('aria-label', 'Current brand');
+      byId('provider-options').setAttribute('aria-label', translate('currentBrand'));
       byId('provider-options').replaceChildren(element('span', 'provider-button', providerName));
       byId('plan-grid').replaceChildren(...plans.map(plan => renderPlan(plan, providerName)));
       byId('plan-grid').setAttribute('aria-busy', 'false');
-      byId('catalog-status').textContent = `${plans.length} ${plans.length === 1 ? 'plan' : 'plans'} available from ${providerName}.`;
-      byId('api-status').textContent = 'Catalog connected';
-      byId('plan-summary').textContent = 'Current catalog prices. Review the final total and any fees at checkout.';
+      byId('catalog-status').textContent = translate('plansAvailable', { provider: providerName, count: new Intl.NumberFormat(activeLocale).format(plans.length) });
+      byId('api-status').textContent = translate('connected');
+      byId('plan-summary').textContent = translate('priceNote');
       byId('hero-price').textContent = plans[0].price;
-      byId('hero-plan').textContent = `${plans[0].duration_months} ${plans[0].duration_months === 1 ? 'month' : 'months'} · current plan`;
+      byId('hero-plan').textContent = translate('currentPlan', { duration: durationText(plans[0].duration_months) });
       byId('hero-provider').textContent = providerName;
       renderComparison(plans, providerName);
     } catch {
-      if (currentVersion === version) showPlanError('We could not load current prices. Please retry or contact support.');
+      if (currentVersion === version) showPlanError(translate('pricesError'));
     }
   }
 
