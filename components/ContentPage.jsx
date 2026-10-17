@@ -15,6 +15,14 @@ export default function ContentPage({ site, locale, page, pages = [], labels = {
   const policy = ['terms-of-service', 'privacy-policy', 'refund-policy'].includes(page.slug);
   const articles = pages.filter(item => item.kind === 'article');
   const isPackages = page.kind === 'packages';
+  const [playlistGuide, playbackGuide, supportGuide] = articles;
+  const relatedSlugs = page.kind === 'article' ? ['iptv-applications', ...articles.map(item => item.slug)] : {
+    setup: ['iptv-applications', playbackGuide?.slug, supportGuide?.slug],
+    'iptv-applications': [playbackGuide?.slug, playlistGuide?.slug, 'faqs'],
+    faqs: ['iptv-applications', playbackGuide?.slug, supportGuide?.slug],
+  }[page.slug] || [];
+  const relatedPages = [...new Set(relatedSlugs)].filter(slug => slug !== page.slug)
+    .map(slug => pages.find(item => item.slug === slug)).filter(Boolean).slice(0, 3);
 
   return <main id="main" className={'content-page page-' + page.kind}>
     <div className="container">
@@ -25,6 +33,7 @@ export default function ContentPage({ site, locale, page, pages = [], labels = {
         <article className="page-copy">
           {policy && <aside className="policy-notice"><p>{labels.disclaimer}</p><a href={centralUrl('/' + page.slug, site.source, origin)}>{labels.governingPolicy} — opplexiptv.com <span aria-hidden="true">↗</span></a></aside>}
           {page.sections.map((section, index) => <section className="copy-section" key={section.heading + index} aria-labelledby={'copy-heading-' + index}><span className="section-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><div><h2 id={'copy-heading-' + index}>{section.heading}</h2><p>{section.body}</p></div></section>)}
+          {relatedPages.length > 0 && <nav className="copy-section" aria-labelledby="related-guides-heading"><span className="section-index" aria-hidden="true">↗</span><div><h2 id="related-guides-heading">{nav.blogs || labels.guide}</h2><ul>{relatedPages.map(related => <li key={related.slug}><Link className="text-link" href={pathFor(locale, related.slug)}>{related.title}<span aria-hidden="true">→</span></Link></li>)}</ul></div></nav>}
           {page.kind === 'contact' && <button type="button" className="button button-primary" onClick={event => openContact('whatsapp', event.currentTarget)}>{labels.contact}<span aria-hidden="true">↗</span></button>}
           {page.kind === 'activation' && <a className="button button-primary" href={centralUrl('/' + (page.slug === 'activate-info' ? 'activate-info' : 'activate'), site.source, origin)}>{nav[page.slug] || page.title}<span aria-hidden="true">↗</span></a>}
           {page.kind === 'article' && <Link className="text-link" href={pathFor(locale, 'blogs')}><span aria-hidden="true">←</span>{labels.backToGuides}</Link>}
