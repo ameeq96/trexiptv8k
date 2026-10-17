@@ -1,0 +1,489 @@
+{
+  "ui": {
+    "tooMany": "Too many attempts. Please wait a little before trying again.",
+    "conflict": "An earlier request may already be saved. Close this form and reopen it if you need to change or resend your details.",
+    "saveFailed": "We could not save your enquiry. Please retry or use the main contact page.",
+    "unconfirmed": "Your enquiry was not confirmed as saved. Please retry.",
+    "measurementOn": "Optional usage measurement is on for this website.",
+    "measurementOff": "Optional usage measurement is off for this website.",
+    "saveWhatsApp": "Save and open WhatsApp",
+    "saveChat": "Save and open live chat",
+    "consentWhatsApp": "I agree that Opplex IPTV may store these details and contact me on WhatsApp about this enquiry, not for marketing.",
+    "consentChat": "I agree that Opplex IPTV may store these details and handle my live-chat enquiry. This does not give permission for WhatsApp contact.",
+    "phoneInvalid": "Enter a phone number with 8–15 digits (0–9), including your country code.",
+    "required": "Please complete this field.",
+    "emailInvalid": "Enter a valid email address.",
+    "consentRequired": "Please confirm contact permission to continue.",
+    "fieldInvalid": "Please check this field.",
+    "saving": "Saving your enquiry…",
+    "saved": "Your enquiry is saved.",
+    "invalidField": "Please check the {field} field and try again.",
+    "field_name": "name",
+    "field_email": "email",
+    "field_phone": "phone",
+    "field_message": "message",
+    "field_contact_consent": "contact permission",
+    "saveTimeout": "Saving took too long. Please retry; the same request will not create a duplicate.",
+    "chatFailed": "Chat could not load. Tap the chat icon to retry, or use WhatsApp.",
+    "chatSlow": "Chat is taking longer to load. You can use WhatsApp for support.",
+    "chatLoading": "Chat is still loading. You can use WhatsApp for support.",
+    "chatOpening": "Opening live chat…",
+    "terms": "Terms of service",
+    "privacy": "Privacy policy",
+    "refund": "Refund policy",
+    "compare": "Compare the full term",
+    "equivalentNote": "Monthly equivalent = plan total ÷ months. This is a comparison only, not monthly billing. Check the final amount and any fees at checkout.",
+    "comparisonRegion": "Plan comparison; scroll horizontally if needed",
+    "comparisonCaption": "{provider} · current available plans",
+    "term": "Term",
+    "total": "Plan total",
+    "equivalent": "Monthly equivalent",
+    "connections": "Connections",
+    "confirmSupport": "Confirm with support",
+    "fullPlan": "For the full {duration} plan",
+    "finalFees": "Review the final amount and any fees at checkout",
+    "connectionCount": "Simultaneous connections: {count}",
+    "confirmConnections": "Confirm the connection allowance with support",
+    "checkout": "Continue to checkout",
+    "checkoutLabel": "Continue to checkout: {provider}, {duration}, {price}",
+    "catalogUnavailable": "Catalog unavailable",
+    "availability": "Check availability with support",
+    "deviceCheck": "Check your exact device and player with support before purchasing. A listed device is not a compatibility guarantee.",
+    "deviceContact": "Contact support to check your device.",
+    "deviceError": "Device information is temporarily unavailable. Contact support for help.",
+    "loadingPlans": "Loading current plans",
+    "loadingBrand": "Loading current brand plans from Opplex IPTV…",
+    "connecting": "Connecting to catalog",
+    "loadingDevices": "Loading device information…",
+    "missingBrand": "This page has no configured brand. Please contact support.",
+    "noPlans": "No available plans for this brand right now. Please retry or contact support.",
+    "currentBrand": "Current brand",
+    "plansAvailable": "{provider} · available plans: {count}",
+    "connected": "Catalog connected",
+    "priceNote": "Current catalog prices. Review the final total and any fees at checkout.",
+    "currentPlan": "{duration} · current plan",
+    "pricesError": "We could not load current prices. Please retry or contact support."
+  },
+  "metadata": {
+    "en": {
+      "title": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
+      "description": "Explore the Trex IPTV 8K yearly subscription, review the current 12-month plan and check device, channel and connection needs before checkout.",
+      "ogTitle": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
+      "ogDescription": "Review the current yearly plan and a practical checklist for your device, viewing needs and connections before choosing Trex IPTV 8K.",
+      "twitterTitle": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
+      "twitterDescription": "Review the current yearly plan and a practical checklist for your device, viewing needs and connections before choosing Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/#webpage",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
+            "description": "Review the Trex IPTV 8K yearly subscription from the Opplex IPTV catalogue and check your setup before purchasing.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "en"
+          }
+        ]
+      }
+    },
+    "es": {
+      "title": "Suscripción anual Trex IPTV 8K | Plan y configuración",
+      "description": "Explora la suscripción anual Trex IPTV 8K, revisa el plan actual de 12 meses y comprueba tus necesidades de dispositivo, canales y conexiones antes de pagar.",
+      "ogTitle": "Suscripción anual Trex IPTV 8K | Plan y configuración",
+      "ogDescription": "Revisa el plan anual actual y una lista práctica para tu dispositivo, tus preferencias y tus conexiones antes de elegir Trex IPTV 8K.",
+      "twitterTitle": "Suscripción anual Trex IPTV 8K | Plan y configuración",
+      "twitterDescription": "Revisa el plan anual actual y una lista práctica para tu dispositivo, tus preferencias y tus conexiones antes de elegir Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/es/#webpage",
+            "url": "https://trexiptv8k.store/es/",
+            "name": "Suscripción anual Trex IPTV 8K | Plan y configuración",
+            "description": "Revisa la suscripción anual Trex IPTV 8K del catálogo de Opplex IPTV y comprueba tu configuración antes de comprar.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "es"
+          }
+        ]
+      }
+    },
+    "fr": {
+      "title": "Abonnement annuel Trex IPTV 8K | Offre et installation",
+      "description": "Découvrez l’abonnement annuel Trex IPTV 8K, consultez l’offre actuelle de 12 mois et vérifiez vos besoins en appareils, chaînes et connexions avant de payer.",
+      "ogTitle": "Abonnement annuel Trex IPTV 8K | Offre et installation",
+      "ogDescription": "Consultez l’offre annuelle actuelle et une liste pratique pour votre appareil, vos besoins de visionnage et vos connexions avant de choisir Trex IPTV 8K.",
+      "twitterTitle": "Abonnement annuel Trex IPTV 8K | Offre et installation",
+      "twitterDescription": "Consultez l’offre annuelle actuelle et une liste pratique pour votre appareil, vos besoins de visionnage et vos connexions avant de choisir Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/fr/#webpage",
+            "url": "https://trexiptv8k.store/fr/",
+            "name": "Abonnement annuel Trex IPTV 8K | Offre et installation",
+            "description": "Consultez l’abonnement annuel Trex IPTV 8K du catalogue Opplex IPTV et vérifiez votre installation avant l’achat.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "fr"
+          }
+        ]
+      }
+    },
+    "it": {
+      "title": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
+      "description": "Scopri l’abbonamento annuale Trex IPTV 8K, consulta il piano attuale di 12 mesi e verifica dispositivi, canali e connessioni prima del pagamento.",
+      "ogTitle": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
+      "ogDescription": "Consulta il piano annuale attuale e una lista pratica per dispositivo, esigenze di visione e connessioni prima di scegliere Trex IPTV 8K.",
+      "twitterTitle": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
+      "twitterDescription": "Consulta il piano annuale attuale e una lista pratica per dispositivo, esigenze di visione e connessioni prima di scegliere Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/it/#webpage",
+            "url": "https://trexiptv8k.store/it/",
+            "name": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
+            "description": "Consulta l’abbonamento annuale Trex IPTV 8K del catalogo Opplex IPTV e verifica la tua configurazione prima dell’acquisto.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "it"
+          }
+        ]
+      }
+    },
+    "nl": {
+      "title": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
+      "description": "Ontdek het Trex IPTV 8K-jaarabonnement, bekijk het huidige pakket van 12 maanden en controleer apparaten, zenders en verbindingen voordat je afrekent.",
+      "ogTitle": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
+      "ogDescription": "Bekijk het huidige jaarpakket en een praktische checklist voor jouw apparaat, kijkwensen en verbindingen voordat je Trex IPTV 8K kiest.",
+      "twitterTitle": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
+      "twitterDescription": "Bekijk het huidige jaarpakket en een praktische checklist voor jouw apparaat, kijkwensen en verbindingen voordat je Trex IPTV 8K kiest.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/nl/#webpage",
+            "url": "https://trexiptv8k.store/nl/",
+            "name": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
+            "description": "Bekijk het Trex IPTV 8K-jaarabonnement uit de Opplex IPTV-catalogus en controleer jouw opstelling vóór aankoop.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "nl"
+          }
+        ]
+      }
+    },
+    "pt": {
+      "title": "Assinatura anual Trex IPTV 8K | Plano e configuração",
+      "description": "Conheça a assinatura anual Trex IPTV 8K, consulte o plano atual de 12 meses e confira dispositivos, canais e conexões antes do pagamento.",
+      "ogTitle": "Assinatura anual Trex IPTV 8K | Plano e configuração",
+      "ogDescription": "Consulte o plano anual atual e uma lista prática para seu dispositivo, necessidades de conteúdo e conexões antes de escolher Trex IPTV 8K.",
+      "twitterTitle": "Assinatura anual Trex IPTV 8K | Plano e configuração",
+      "twitterDescription": "Consulte o plano anual atual e uma lista prática para seu dispositivo, necessidades de conteúdo e conexões antes de escolher Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/pt/#webpage",
+            "url": "https://trexiptv8k.store/pt/",
+            "name": "Assinatura anual Trex IPTV 8K | Plano e configuração",
+            "description": "Consulte a assinatura anual Trex IPTV 8K do catálogo da Opplex IPTV e verifique sua configuração antes de comprar.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "pt"
+          }
+        ]
+      }
+    },
+    "ru": {
+      "title": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
+      "description": "Узнайте о годовой подписке Trex IPTV 8K, изучите действующий тариф на 12 месяцев и проверьте устройства, каналы и подключения перед оплатой.",
+      "ogTitle": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
+      "ogDescription": "Изучите действующий годовой тариф и практический список проверок устройства, предпочтений просмотра и подключений перед выбором Trex IPTV 8K.",
+      "twitterTitle": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
+      "twitterDescription": "Изучите действующий годовой тариф и практический список проверок устройства, предпочтений просмотра и подключений перед выбором Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/ru/#webpage",
+            "url": "https://trexiptv8k.store/ru/",
+            "name": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
+            "description": "Изучите годовую подписку Trex IPTV 8K из каталога Opplex IPTV и проверьте свою систему перед покупкой.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "ru"
+          }
+        ]
+      }
+    },
+    "ur": {
+      "title": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
+      "description": "Trex IPTV 8K کی سالانہ سبسکرپشن اور موجودہ 12 ماہ کا پلان دیکھیں، پھر چیک آؤٹ سے پہلے آلے، چینلز اور کنکشن کی ضروریات جانچیں۔",
+      "ogTitle": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
+      "ogDescription": "Trex IPTV 8K منتخب کرنے سے پہلے موجودہ سالانہ پلان اور اپنے آلے، دیکھنے کی ضروریات اور کنکشن کی عملی چیک لسٹ دیکھیں۔",
+      "twitterTitle": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
+      "twitterDescription": "Trex IPTV 8K منتخب کرنے سے پہلے موجودہ سالانہ پلان اور اپنے آلے، دیکھنے کی ضروریات اور کنکشن کی عملی چیک لسٹ دیکھیں۔",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/ur/#webpage",
+            "url": "https://trexiptv8k.store/ur/",
+            "name": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
+            "description": "Opplex IPTV کے کیٹلاگ میں Trex IPTV 8K کی سالانہ سبسکرپشن دیکھیں اور خریدنے سے پہلے اپنا سیٹ اپ جانچیں۔",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "ur"
+          }
+        ]
+      }
+    },
+    "ar": {
+      "title": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
+      "description": "تعرّف على اشتراك Trex IPTV 8K السنوي، وراجع خطة الاثني عشر شهرًا الحالية، وتحقق من احتياجات الجهاز والقنوات والاتصالات قبل الدفع.",
+      "ogTitle": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
+      "ogDescription": "راجع الخطة السنوية الحالية وقائمة عملية لجهازك واحتياجات المشاهدة والاتصالات قبل اختيار Trex IPTV 8K.",
+      "twitterTitle": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
+      "twitterDescription": "راجع الخطة السنوية الحالية وقائمة عملية لجهازك واحتياجات المشاهدة والاتصالات قبل اختيار Trex IPTV 8K.",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/ar/#webpage",
+            "url": "https://trexiptv8k.store/ar/",
+            "name": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
+            "description": "راجع اشتراك Trex IPTV 8K السنوي من كتالوج Opplex IPTV وتحقق من إعدادك قبل الشراء.",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "ar"
+          }
+        ]
+      }
+    },
+    "hi": {
+      "title": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
+      "description": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन और मौजूदा 12 महीने का प्लान देखें, फिर चेकआउट से पहले डिवाइस, चैनलों और कनेक्शन की ज़रूरतें जाँचें।",
+      "ogTitle": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
+      "ogDescription": "Trex IPTV 8K चुनने से पहले मौजूदा वार्षिक प्लान और अपने डिवाइस, देखने की ज़रूरतों तथा कनेक्शन की उपयोगी चेकलिस्ट देखें।",
+      "twitterTitle": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
+      "twitterDescription": "Trex IPTV 8K चुनने से पहले मौजूदा वार्षिक प्लान और अपने डिवाइस, देखने की ज़रूरतों तथा कनेक्शन की उपयोगी चेकलिस्ट देखें।",
+      "schema": {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://trexiptv8k.store/#website",
+            "url": "https://trexiptv8k.store/",
+            "name": "Trex IPTV 8K",
+            "inLanguage": [
+              "en",
+              "es",
+              "fr",
+              "it",
+              "nl",
+              "pt",
+              "ru",
+              "ur",
+              "ar",
+              "hi"
+            ]
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://trexiptv8k.store/hi/#webpage",
+            "url": "https://trexiptv8k.store/hi/",
+            "name": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
+            "description": "Opplex IPTV के कैटलॉग में Trex IPTV 8K का वार्षिक सब्सक्रिप्शन देखें और खरीदने से पहले अपना सेटअप जाँचें।",
+            "isPartOf": {
+              "@id": "https://trexiptv8k.store/#website"
+            },
+            "inLanguage": "hi"
+          }
+        ]
+      }
+    }
+  }
+}

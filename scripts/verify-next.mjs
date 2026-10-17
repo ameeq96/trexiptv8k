@@ -1,0 +1,91 @@
+import assert from 'node:assert/strict';
+import { readFile, readdir, access } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, relative } from 'node:path';
+import { site, SUPPORTED_LOCALES } from '../lib/site.js';
+import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding } from '../lib/api.js';
+
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+const excluded = new Set(['.git', '.next', 'out', 'node_modules', 'app', 'components', 'lib', 'scripts', 'data', 'public']);
+async function collect(directory, skip = false) {
+  const files = [];
+  for (const item of await readdir(directory, { withFileTypes: true })) {
+    if (skip && excluded.has(item.name)) continue;
+    const path = join(directory, item.name);
+    if (item.isDirectory()) files.push(...await collect(path, skip));
+    else if (item.name.endsWith('.html')) files.push(path);
+  }
+  return files;
+}
+const decode = value => value.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#(?:x([\da-f]+)|(\d+));/gi, (_, hex, dec) => String.fromCodePoint(parseInt(hex || dec, hex ? 16 : 10))).replace(/&#x27;|&#39;|&apos;/g, "'");
+function attributes(tag) {
+  return Object.fromEntries([...tag.matchAll(/([\w:-]+)="([^"]*)"/g)].map(([, key, value]) => [key.toLowerCase(), decode(value)]));
+}
+function tags(html, tag) { return [...html.matchAll(new RegExp('<' + tag + '\\b[^>]*>', 'g'))].map(match => attributes(match[0])); }
+function meta(html, key) { return tags(html, 'meta').find(tag => tag.name === key || tag.property === key)?.content; }
+function canonical(html) { return tags(html, 'link').find(tag => tag.rel === 'canonical')?.href; }
+function alternates(html) { return tags(html, 'link').filter(tag => tag.rel === 'alternate' && tag.hreflang).map(tag => tag.hreflang + ':' + tag.href).sort(); }
+function title(html) { return decode(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] || ''); }
+
+const originals = await collect(root, true);
+assert.equal(originals.length, 190, 'Unexpected existing route inventory');
+const expected = new Set();
+for (const file of originals) {
+  const local = relative(root, file);
+  expected.add(local.replaceAll('\\', '/'));
+  const before = await readFile(file, 'utf8');
+  const after = await readFile(join(root, 'out', local), 'utf8');
+  assert.equal(canonical(after), canonical(before), local + ' canonical');
+  assert.deepEqual(alternates(after), alternates(before), local + ' language alternates');
+  assert.equal(title(after), title(before), local + ' title');
+  for (const key of ['description', 'og:title', 'og:description', 'og:url', 'twitter:title', 'twitter:description']) {
+    assert.equal(meta(after, key), meta(before, key), local + ' ' + key);
+  }
+  const htmlTag = tags(after, 'html')[0];
+  const originalTag = tags(before, 'html')[0];
+  assert.equal(htmlTag.lang, originalTag.lang, local + ' language');
+  assert.equal(htmlTag.dir, originalTag.dir, local + ' direction');
+  const icon = tags(after, 'link').filter(tag => tag.rel === 'icon');
+  assert.equal(icon.length, 1, local + ' single icon');
+  assert.equal(icon[0].href, '/' + site.favicon + '?v=20261017', local + ' favicon');
+  assert.match(after, /<h1[\s>]/, local + ' initial HTML content');
+  assert.match(after, /\/_next\/static\//, local + ' Next assets');
+  assert.doesNotMatch(after, /src="\/app\.js/, local + ' must not execute legacy DOM script');
+  assert.doesNotMatch(after, /class="[^"]*\bpublic-navigation\b/, local + ' duplicate Explore bar');
+  assert.match(after, /<script type="application\/ld\+json">/, local + ' structured data');
+  const json = after.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
+  assert.ok(JSON.parse(json)['@graph']?.some(node => node['@type'] === 'WebPage' && node.url === canonical(before)), local + ' schema URL');
+  for (const link of tags(after, 'a')) {
+    if (!link.href?.startsWith('/') || link.href.startsWith('//')) continue;
+    const path = new URL(link.href, 'https://' + site.domain).pathname;
+    const target = path.endsWith('/') ? path + 'index.html' : path;
+    await access(join(root, 'out', decodeURIComponent(target))).catch(() => { throw new Error(local + ' broken internal link: ' + path); });
+  }
+}
+const exported = await collect(join(root, 'out'));
+const actual = new Set(exported.map(file => relative(join(root, 'out'), file).replaceAll('\\', '/')).filter(file => !['404.html', '404/index.html', '_not-found.html', '_not-found/index.html'].includes(file)));
+assert.deepEqual([...actual].sort(), [...expected].sort(), 'Export route inventory changed');
+for (const asset of ['robots.txt', 'sitemap.xml', site.favicon]) {
+  const original = await readFile(join(root, asset));
+  assert.ok(original.equals(await readFile(join(root, 'public', asset))), asset + ' public copy changed');
+  assert.ok(original.equals(await readFile(join(root, 'out', asset))), asset + ' exported copy changed');
+}
+const sitemap = await readFile(join(root, 'out', 'sitemap.xml'), 'utf8');
+assert.equal([...sitemap.matchAll(/<loc>/g)].length, 190, 'Sitemap page count');
+assert.equal(SUPPORTED_LOCALES.length, 10);
+assert.equal(centralUrl('https://example.net/checkout'), null, 'Foreign checkout blocked');
+assert.equal(checkoutUrl(-1, site.source), null, 'Invalid package blocked');
+assert.match(checkoutUrl(148, site.source), new RegExp('utm_source=' + site.source));
+assert.match(newRequestId(), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+assert.equal(availablePlans([{ id: 1, type: 'iptv', is_available: false, price_amount: 9, duration_months: 1, currency: 'USD' }]).length, 0);
+const originalFetch = globalThis.fetch;
+let calls = 0;
+try {
+  globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ ok: true }), { status: 202, headers: { 'Content-Type': 'application/json' } }); };
+  assert.equal((await postLanding('leads', { brand: site.brand })).ok, true);
+  globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ ok: false }), { status: 200 }); };
+  await assert.rejects(() => postLanding('leads', { brand: site.brand }));
+  globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ errors: { email: ['Invalid'] } }), { status: 422 }); };
+  await assert.rejects(() => postLanding('leads', { brand: site.brand }), error => error.status === 422 && !!error.fields?.email);
+} finally { globalThis.fetch = originalFetch; }
+console.log(site.domain + ': 190 Next routes, 10 languages, metadata/hreflang/schema, all internal links and unchanged sitemap/robots/favicon verified. ' + calls + ' mocked form responses checked; no real submissions.');

@@ -1,0 +1,16 @@
+{
+  "name": "trexiptv8k",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1 --port 8101",
+    "build": "next build --webpack",
+    "verify": "node scripts/verify-next.mjs"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  }
+}
