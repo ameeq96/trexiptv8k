@@ -320,7 +320,7 @@ body[data-theme=trex] .guide-section{background:#0c1832}
 body[data-theme=trex] .guide-grid{grid-template-columns:repeat(2,1fr);gap:0;border-top:1px solid var(--line)}
 body[data-theme=trex] .guide-card{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;padding:35px}
 body[data-theme=trex] .guide-card:nth-child(odd){border-inline-end:1px solid var(--line);padding-inline-start:0}
-body[data-theme=trex] .guide-number,body[data-theme=trex] .eyebrow{color:#ff7a76}
+body[data-theme=trex] .guide-number,body[data-theme=trex] .eyebrow,body[data-theme=trex] .article-number{color:#ff7a76}
 body[data-theme=trex] .article-card{border-top-color:#50617f}
 body[data-theme=trex] .support-card{background:#182642;border:1px solid #33425f;border-radius:5px}
 body[data-theme=trex] .site-footer{background:#040c20}

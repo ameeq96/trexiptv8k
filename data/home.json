@@ -67,11 +67,11 @@
   "metadata": {
     "en": {
       "title": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
-      "description": "Explore the Trex IPTV 8K yearly subscription, review the current 12-month plan and check device, channel and connection needs before checkout.",
+      "description": "Explore the Trex IPTV 8K 12-month plan with one simultaneous connection. Check the full cost, device requirements and yearly-plan checklist before checkout.",
       "ogTitle": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
-      "ogDescription": "Review the current yearly plan and a practical checklist for your device, viewing needs and connections before choosing Trex IPTV 8K.",
+      "ogDescription": "Explore the Trex IPTV 8K 12-month plan with one simultaneous connection. Check the full cost, device requirements and yearly-plan checklist before checkout.",
       "twitterTitle": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
-      "twitterDescription": "Review the current yearly plan and a practical checklist for your device, viewing needs and connections before choosing Trex IPTV 8K.",
+      "twitterDescription": "Explore the Trex IPTV 8K 12-month plan with one simultaneous connection. Check the full cost, device requirements and yearly-plan checklist before checkout.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -98,7 +98,7 @@
             "@id": "https://trexiptv8k.store/#webpage",
             "url": "https://trexiptv8k.store/",
             "name": "Trex IPTV 8K Yearly Subscription | Plan & Setup",
-            "description": "Review the Trex IPTV 8K yearly subscription from the Opplex IPTV catalogue and check your setup before purchasing.",
+            "description": "Explore the Trex IPTV 8K 12-month plan with one simultaneous connection. Check the full cost, device requirements and yearly-plan checklist before checkout.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -109,11 +109,11 @@
     },
     "es": {
       "title": "Suscripción anual Trex IPTV 8K | Plan y configuración",
-      "description": "Explora la suscripción anual Trex IPTV 8K, revisa el plan actual de 12 meses y comprueba tus necesidades de dispositivo, canales y conexiones antes de pagar.",
+      "description": "Consulta el plan Trex IPTV 8K de 12 meses con una conexión simultánea. Revisa el coste total y las comprobaciones de tu dispositivo antes de pagar.",
       "ogTitle": "Suscripción anual Trex IPTV 8K | Plan y configuración",
-      "ogDescription": "Revisa el plan anual actual y una lista práctica para tu dispositivo, tus preferencias y tus conexiones antes de elegir Trex IPTV 8K.",
+      "ogDescription": "Consulta el plan Trex IPTV 8K de 12 meses con una conexión simultánea. Revisa el coste total y las comprobaciones de tu dispositivo antes de pagar.",
       "twitterTitle": "Suscripción anual Trex IPTV 8K | Plan y configuración",
-      "twitterDescription": "Revisa el plan anual actual y una lista práctica para tu dispositivo, tus preferencias y tus conexiones antes de elegir Trex IPTV 8K.",
+      "twitterDescription": "Consulta el plan Trex IPTV 8K de 12 meses con una conexión simultánea. Revisa el coste total y las comprobaciones de tu dispositivo antes de pagar.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -140,7 +140,7 @@
             "@id": "https://trexiptv8k.store/es/#webpage",
             "url": "https://trexiptv8k.store/es/",
             "name": "Suscripción anual Trex IPTV 8K | Plan y configuración",
-            "description": "Revisa la suscripción anual Trex IPTV 8K del catálogo de Opplex IPTV y comprueba tu configuración antes de comprar.",
+            "description": "Consulta el plan Trex IPTV 8K de 12 meses con una conexión simultánea. Revisa el coste total y las comprobaciones de tu dispositivo antes de pagar.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -151,11 +151,11 @@
     },
     "fr": {
       "title": "Abonnement annuel Trex IPTV 8K | Offre et installation",
-      "description": "Découvrez l’abonnement annuel Trex IPTV 8K, consultez l’offre actuelle de 12 mois et vérifiez vos besoins en appareils, chaînes et connexions avant de payer.",
+      "description": "Découvrez le forfait Trex IPTV 8K de 12 mois avec une connexion simultanée. Vérifiez le coût total et votre appareil avant de vous engager pour un an.",
       "ogTitle": "Abonnement annuel Trex IPTV 8K | Offre et installation",
-      "ogDescription": "Consultez l’offre annuelle actuelle et une liste pratique pour votre appareil, vos besoins de visionnage et vos connexions avant de choisir Trex IPTV 8K.",
+      "ogDescription": "Découvrez le forfait Trex IPTV 8K de 12 mois avec une connexion simultanée. Vérifiez le coût total et votre appareil avant de vous engager pour un an.",
       "twitterTitle": "Abonnement annuel Trex IPTV 8K | Offre et installation",
-      "twitterDescription": "Consultez l’offre annuelle actuelle et une liste pratique pour votre appareil, vos besoins de visionnage et vos connexions avant de choisir Trex IPTV 8K.",
+      "twitterDescription": "Découvrez le forfait Trex IPTV 8K de 12 mois avec une connexion simultanée. Vérifiez le coût total et votre appareil avant de vous engager pour un an.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -182,7 +182,7 @@
             "@id": "https://trexiptv8k.store/fr/#webpage",
             "url": "https://trexiptv8k.store/fr/",
             "name": "Abonnement annuel Trex IPTV 8K | Offre et installation",
-            "description": "Consultez l’abonnement annuel Trex IPTV 8K du catalogue Opplex IPTV et vérifiez votre installation avant l’achat.",
+            "description": "Découvrez le forfait Trex IPTV 8K de 12 mois avec une connexion simultanée. Vérifiez le coût total et votre appareil avant de vous engager pour un an.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -193,11 +193,11 @@
     },
     "it": {
       "title": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
-      "description": "Scopri l’abbonamento annuale Trex IPTV 8K, consulta il piano attuale di 12 mesi e verifica dispositivi, canali e connessioni prima del pagamento.",
+      "description": "Scopri il piano Trex IPTV 8K di 12 mesi con una connessione simultanea. Verifica il costo totale e il tuo dispositivo prima dell’acquisto annuale.",
       "ogTitle": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
-      "ogDescription": "Consulta il piano annuale attuale e una lista pratica per dispositivo, esigenze di visione e connessioni prima di scegliere Trex IPTV 8K.",
+      "ogDescription": "Scopri il piano Trex IPTV 8K di 12 mesi con una connessione simultanea. Verifica il costo totale e il tuo dispositivo prima dell’acquisto annuale.",
       "twitterTitle": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
-      "twitterDescription": "Consulta il piano annuale attuale e una lista pratica per dispositivo, esigenze di visione e connessioni prima di scegliere Trex IPTV 8K.",
+      "twitterDescription": "Scopri il piano Trex IPTV 8K di 12 mesi con una connessione simultanea. Verifica il costo totale e il tuo dispositivo prima dell’acquisto annuale.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -224,7 +224,7 @@
             "@id": "https://trexiptv8k.store/it/#webpage",
             "url": "https://trexiptv8k.store/it/",
             "name": "Abbonamento annuale Trex IPTV 8K | Piano e configurazione",
-            "description": "Consulta l’abbonamento annuale Trex IPTV 8K del catalogo Opplex IPTV e verifica la tua configurazione prima dell’acquisto.",
+            "description": "Scopri il piano Trex IPTV 8K di 12 mesi con una connessione simultanea. Verifica il costo totale e il tuo dispositivo prima dell’acquisto annuale.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -235,11 +235,11 @@
     },
     "nl": {
       "title": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
-      "description": "Ontdek het Trex IPTV 8K-jaarabonnement, bekijk het huidige pakket van 12 maanden en controleer apparaten, zenders en verbindingen voordat je afrekent.",
+      "description": "Bekijk het Trex IPTV 8K-pakket van 12 maanden met één gelijktijdige verbinding. Controleer de totaalprijs en jouw apparaat voordat je een jaar kiest.",
       "ogTitle": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
-      "ogDescription": "Bekijk het huidige jaarpakket en een praktische checklist voor jouw apparaat, kijkwensen en verbindingen voordat je Trex IPTV 8K kiest.",
+      "ogDescription": "Bekijk het Trex IPTV 8K-pakket van 12 maanden met één gelijktijdige verbinding. Controleer de totaalprijs en jouw apparaat voordat je een jaar kiest.",
       "twitterTitle": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
-      "twitterDescription": "Bekijk het huidige jaarpakket en een praktische checklist voor jouw apparaat, kijkwensen en verbindingen voordat je Trex IPTV 8K kiest.",
+      "twitterDescription": "Bekijk het Trex IPTV 8K-pakket van 12 maanden met één gelijktijdige verbinding. Controleer de totaalprijs en jouw apparaat voordat je een jaar kiest.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -266,7 +266,7 @@
             "@id": "https://trexiptv8k.store/nl/#webpage",
             "url": "https://trexiptv8k.store/nl/",
             "name": "Trex IPTV 8K jaarabonnement | Pakket en installatie",
-            "description": "Bekijk het Trex IPTV 8K-jaarabonnement uit de Opplex IPTV-catalogus en controleer jouw opstelling vóór aankoop.",
+            "description": "Bekijk het Trex IPTV 8K-pakket van 12 maanden met één gelijktijdige verbinding. Controleer de totaalprijs en jouw apparaat voordat je een jaar kiest.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -277,11 +277,11 @@
     },
     "pt": {
       "title": "Assinatura anual Trex IPTV 8K | Plano e configuração",
-      "description": "Conheça a assinatura anual Trex IPTV 8K, consulte o plano atual de 12 meses e confira dispositivos, canais e conexões antes do pagamento.",
+      "description": "Conheça o plano Trex IPTV 8K de 12 meses com uma ligação em simultâneo. Confira o custo total e o seu dispositivo antes de escolher um plano anual.",
       "ogTitle": "Assinatura anual Trex IPTV 8K | Plano e configuração",
-      "ogDescription": "Consulte o plano anual atual e uma lista prática para seu dispositivo, necessidades de conteúdo e conexões antes de escolher Trex IPTV 8K.",
+      "ogDescription": "Conheça o plano Trex IPTV 8K de 12 meses com uma ligação em simultâneo. Confira o custo total e o seu dispositivo antes de escolher um plano anual.",
       "twitterTitle": "Assinatura anual Trex IPTV 8K | Plano e configuração",
-      "twitterDescription": "Consulte o plano anual atual e uma lista prática para seu dispositivo, necessidades de conteúdo e conexões antes de escolher Trex IPTV 8K.",
+      "twitterDescription": "Conheça o plano Trex IPTV 8K de 12 meses com uma ligação em simultâneo. Confira o custo total e o seu dispositivo antes de escolher um plano anual.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -308,7 +308,7 @@
             "@id": "https://trexiptv8k.store/pt/#webpage",
             "url": "https://trexiptv8k.store/pt/",
             "name": "Assinatura anual Trex IPTV 8K | Plano e configuração",
-            "description": "Consulte a assinatura anual Trex IPTV 8K do catálogo da Opplex IPTV e verifique sua configuração antes de comprar.",
+            "description": "Conheça o plano Trex IPTV 8K de 12 meses com uma ligação em simultâneo. Confira o custo total e o seu dispositivo antes de escolher um plano anual.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -319,11 +319,11 @@
     },
     "ru": {
       "title": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
-      "description": "Узнайте о годовой подписке Trex IPTV 8K, изучите действующий тариф на 12 месяцев и проверьте устройства, каналы и подключения перед оплатой.",
+      "description": "Тариф Trex IPTV 8K на 12 месяцев включает одно одновременное подключение. Проверьте полную стоимость и требования к устройству перед покупкой.",
       "ogTitle": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
-      "ogDescription": "Изучите действующий годовой тариф и практический список проверок устройства, предпочтений просмотра и подключений перед выбором Trex IPTV 8K.",
+      "ogDescription": "Тариф Trex IPTV 8K на 12 месяцев включает одно одновременное подключение. Проверьте полную стоимость и требования к устройству перед покупкой.",
       "twitterTitle": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
-      "twitterDescription": "Изучите действующий годовой тариф и практический список проверок устройства, предпочтений просмотра и подключений перед выбором Trex IPTV 8K.",
+      "twitterDescription": "Тариф Trex IPTV 8K на 12 месяцев включает одно одновременное подключение. Проверьте полную стоимость и требования к устройству перед покупкой.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -350,7 +350,7 @@
             "@id": "https://trexiptv8k.store/ru/#webpage",
             "url": "https://trexiptv8k.store/ru/",
             "name": "Годовая подписка Trex IPTV 8K | Тариф и настройка",
-            "description": "Изучите годовую подписку Trex IPTV 8K из каталога Opplex IPTV и проверьте свою систему перед покупкой.",
+            "description": "Тариф Trex IPTV 8K на 12 месяцев включает одно одновременное подключение. Проверьте полную стоимость и требования к устройству перед покупкой.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -361,11 +361,11 @@
     },
     "ur": {
       "title": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
-      "description": "Trex IPTV 8K کی سالانہ سبسکرپشن اور موجودہ 12 ماہ کا پلان دیکھیں، پھر چیک آؤٹ سے پہلے آلے، چینلز اور کنکشن کی ضروریات جانچیں۔",
+      "description": "Trex IPTV 8K کا 12 ماہ کا پلان ایک وقت میں ایک کنکشن دیتا ہے۔ سالانہ پلان خریدنے سے پہلے پوری قیمت، آلے کی ضروریات اور سیٹ اپ کی جانچ کریں۔",
       "ogTitle": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
-      "ogDescription": "Trex IPTV 8K منتخب کرنے سے پہلے موجودہ سالانہ پلان اور اپنے آلے، دیکھنے کی ضروریات اور کنکشن کی عملی چیک لسٹ دیکھیں۔",
+      "ogDescription": "Trex IPTV 8K کا 12 ماہ کا پلان ایک وقت میں ایک کنکشن دیتا ہے۔ سالانہ پلان خریدنے سے پہلے پوری قیمت، آلے کی ضروریات اور سیٹ اپ کی جانچ کریں۔",
       "twitterTitle": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
-      "twitterDescription": "Trex IPTV 8K منتخب کرنے سے پہلے موجودہ سالانہ پلان اور اپنے آلے، دیکھنے کی ضروریات اور کنکشن کی عملی چیک لسٹ دیکھیں۔",
+      "twitterDescription": "Trex IPTV 8K کا 12 ماہ کا پلان ایک وقت میں ایک کنکشن دیتا ہے۔ سالانہ پلان خریدنے سے پہلے پوری قیمت، آلے کی ضروریات اور سیٹ اپ کی جانچ کریں۔",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -392,7 +392,7 @@
             "@id": "https://trexiptv8k.store/ur/#webpage",
             "url": "https://trexiptv8k.store/ur/",
             "name": "Trex IPTV 8K کی سالانہ سبسکرپشن | پلان اور سیٹ اپ",
-            "description": "Opplex IPTV کے کیٹلاگ میں Trex IPTV 8K کی سالانہ سبسکرپشن دیکھیں اور خریدنے سے پہلے اپنا سیٹ اپ جانچیں۔",
+            "description": "Trex IPTV 8K کا 12 ماہ کا پلان ایک وقت میں ایک کنکشن دیتا ہے۔ سالانہ پلان خریدنے سے پہلے پوری قیمت، آلے کی ضروریات اور سیٹ اپ کی جانچ کریں۔",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -403,11 +403,11 @@
     },
     "ar": {
       "title": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
-      "description": "تعرّف على اشتراك Trex IPTV 8K السنوي، وراجع خطة الاثني عشر شهرًا الحالية، وتحقق من احتياجات الجهاز والقنوات والاتصالات قبل الدفع.",
+      "description": "تعرّف على خطة Trex IPTV 8K لمدة 12 شهرًا باتصال واحد متزامن. راجع التكلفة الكاملة ومتطلبات جهازك قبل اختيار الاشتراك السنوي.",
       "ogTitle": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
-      "ogDescription": "راجع الخطة السنوية الحالية وقائمة عملية لجهازك واحتياجات المشاهدة والاتصالات قبل اختيار Trex IPTV 8K.",
+      "ogDescription": "تعرّف على خطة Trex IPTV 8K لمدة 12 شهرًا باتصال واحد متزامن. راجع التكلفة الكاملة ومتطلبات جهازك قبل اختيار الاشتراك السنوي.",
       "twitterTitle": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
-      "twitterDescription": "راجع الخطة السنوية الحالية وقائمة عملية لجهازك واحتياجات المشاهدة والاتصالات قبل اختيار Trex IPTV 8K.",
+      "twitterDescription": "تعرّف على خطة Trex IPTV 8K لمدة 12 شهرًا باتصال واحد متزامن. راجع التكلفة الكاملة ومتطلبات جهازك قبل اختيار الاشتراك السنوي.",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -434,7 +434,7 @@
             "@id": "https://trexiptv8k.store/ar/#webpage",
             "url": "https://trexiptv8k.store/ar/",
             "name": "اشتراك Trex IPTV 8K السنوي | الخطة والإعداد",
-            "description": "راجع اشتراك Trex IPTV 8K السنوي من كتالوج Opplex IPTV وتحقق من إعدادك قبل الشراء.",
+            "description": "تعرّف على خطة Trex IPTV 8K لمدة 12 شهرًا باتصال واحد متزامن. راجع التكلفة الكاملة ومتطلبات جهازك قبل اختيار الاشتراك السنوي.",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
@@ -445,11 +445,11 @@
     },
     "hi": {
       "title": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
-      "description": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन और मौजूदा 12 महीने का प्लान देखें, फिर चेकआउट से पहले डिवाइस, चैनलों और कनेक्शन की ज़रूरतें जाँचें।",
+      "description": "Trex IPTV 8K के 12 महीने के प्लान में एक समय पर एक कनेक्शन मिलता है। वार्षिक प्लान लेने से पहले कुल कीमत, डिवाइस की ज़रूरतें और सेटअप जाँचें।",
       "ogTitle": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
-      "ogDescription": "Trex IPTV 8K चुनने से पहले मौजूदा वार्षिक प्लान और अपने डिवाइस, देखने की ज़रूरतों तथा कनेक्शन की उपयोगी चेकलिस्ट देखें।",
+      "ogDescription": "Trex IPTV 8K के 12 महीने के प्लान में एक समय पर एक कनेक्शन मिलता है। वार्षिक प्लान लेने से पहले कुल कीमत, डिवाइस की ज़रूरतें और सेटअप जाँचें।",
       "twitterTitle": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
-      "twitterDescription": "Trex IPTV 8K चुनने से पहले मौजूदा वार्षिक प्लान और अपने डिवाइस, देखने की ज़रूरतों तथा कनेक्शन की उपयोगी चेकलिस्ट देखें।",
+      "twitterDescription": "Trex IPTV 8K के 12 महीने के प्लान में एक समय पर एक कनेक्शन मिलता है। वार्षिक प्लान लेने से पहले कुल कीमत, डिवाइस की ज़रूरतें और सेटअप जाँचें।",
       "schema": {
         "@context": "https://schema.org",
         "@graph": [
@@ -476,7 +476,7 @@
             "@id": "https://trexiptv8k.store/hi/#webpage",
             "url": "https://trexiptv8k.store/hi/",
             "name": "Trex IPTV 8K का वार्षिक सब्सक्रिप्शन | प्लान और सेटअप",
-            "description": "Opplex IPTV के कैटलॉग में Trex IPTV 8K का वार्षिक सब्सक्रिप्शन देखें और खरीदने से पहले अपना सेटअप जाँचें।",
+            "description": "Trex IPTV 8K के 12 महीने के प्लान में एक समय पर एक कनेक्शन मिलता है। वार्षिक प्लान लेने से पहले कुल कीमत, डिवाइस की ज़रूरतें और सेटअप जाँचें।",
             "isPartOf": {
               "@id": "https://trexiptv8k.store/#website"
             },
