@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { availablePlans, durationText, getApiData, message, money } from '../lib/api';
 import { useConsent } from './ConsentProvider';
 
@@ -28,6 +29,7 @@ function validDevices(rows) {
 }
 
 export function CatalogProvider({ site, locale, initialData, initialDevices = [], withDevices = false, children }) {
+  const pathname = usePathname();
   const [snapshot, setSnapshot] = useState(() => validateCatalog(initialData, site.brand, locale));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -93,7 +95,7 @@ export function CatalogProvider({ site, locale, initialData, initialDevices = []
       active = false;
       controller.abort();
     };
-  }, [site.brand, locale, withDevices, revision, initialData]);
+  }, [site.brand, locale, withDevices, revision, initialData, pathname]);
 
   const data = useMemo(() => validateCatalog(snapshot, site.brand, locale), [snapshot, site.brand, locale]);
   const value = useMemo(() => ({

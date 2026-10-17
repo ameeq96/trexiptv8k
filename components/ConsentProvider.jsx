@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { apiOrigin, centralUrl, message, newRequestId, postLanding } from '../lib/api';
 import { copy } from '../lib/site';
 
@@ -8,12 +9,13 @@ const ConsentContext = createContext(null);
 const MEASUREMENT_KEY = 'landing-measurement-v1';
 const SESSION_KEY = 'landing-session-v1';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const trackedVisits = new Set();
+let lastTrackedVisit = null;
 const BRANDS = ['trex', 'opplex', 'geo', '5g'];
 const MEASUREMENT_COPY = 'Allow this website to record page visits and checkout-button clicks, with a random session ID and selected package ID where relevant. No name, email, phone, message or fingerprint is included in these measurement events. If you allow it, that random session ID can also continue through checkout for source measurement. It does not pass contact details or make the person paying the same person as a lead. This is off unless you allow it.';
 const PROVIDER_COPY = 'Chat providers and the payment website have their own privacy practices. Your contact form works whether you allow measurement or not.';
 
 export default function ConsentProvider({ site, locale, ui, text, children }) {
+  const pathname = usePathname();
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
   const [origin, setOrigin] = useState('https://opplexiptv.com');
   const allowedRef = useRef(false);
@@ -40,8 +42,8 @@ export default function ConsentProvider({ site, locale, ui, text, children }) {
     if (!sessionId) return;
     if (event === 'visit') {
       const key = site.brand + ':' + sessionId + ':' + window.location.pathname;
-      if (trackedVisits.has(key)) return;
-      trackedVisits.add(key);
+      if (lastTrackedVisit === key) return;
+      lastTrackedVisit = key;
     }
     const data = {
       brand: site.brand,
@@ -77,7 +79,12 @@ export default function ConsentProvider({ site, locale, ui, text, children }) {
 
   useEffect(() => {
     if (analyticsAllowed) track('visit');
-  }, [analyticsAllowed, track, locale]);
+  }, [analyticsAllowed, track, locale, pathname]);
+
+  useEffect(() => {
+    openerRef.current = null;
+    if (dialogRef.current?.open) dialogRef.current.close();
+  }, [pathname]);
 
   const checkoutLink = useCallback((id, source) => {
     if (!Number.isSafeInteger(id) || id <= 0) return null;

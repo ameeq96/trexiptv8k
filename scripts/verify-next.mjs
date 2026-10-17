@@ -6,13 +6,11 @@ import { site, SUPPORTED_LOCALES } from '../lib/site.js';
 import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding } from '../lib/api.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const excluded = new Set(['.git', '.next', 'out', 'node_modules', 'app', 'components', 'lib', 'scripts', 'data', 'public']);
-async function collect(directory, skip = false) {
+async function collect(directory) {
   const files = [];
   for (const item of await readdir(directory, { withFileTypes: true })) {
-    if (skip && excluded.has(item.name)) continue;
     const path = join(directory, item.name);
-    if (item.isDirectory()) files.push(...await collect(path, skip));
+    if (item.isDirectory()) files.push(...await collect(path));
     else if (item.name.endsWith('.html')) files.push(path);
   }
   return files;
@@ -27,24 +25,24 @@ function canonical(html) { return tags(html, 'link').find(tag => tag.rel === 'ca
 function alternates(html) { return tags(html, 'link').filter(tag => tag.rel === 'alternate' && tag.hreflang).map(tag => tag.hreflang + ':' + tag.href).sort(); }
 function title(html) { return decode(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] || ''); }
 
-const originals = await collect(root, true);
+const baseline = JSON.parse(await readFile(join(root, 'data', 'seo-baseline.json'), 'utf8'));
+const originals = baseline.routes;
 assert.equal(originals.length, 190, 'Unexpected existing route inventory');
+assert.equal(new Set(originals.map(route => route.file)).size, 190, 'Duplicate baseline route');
 const expected = new Set();
-for (const file of originals) {
-  const local = relative(root, file);
-  expected.add(local.replaceAll('\\', '/'));
-  const before = await readFile(file, 'utf8');
+for (const before of originals) {
+  const local = before.file;
+  expected.add(local);
   const after = await readFile(join(root, 'out', local), 'utf8');
-  assert.equal(canonical(after), canonical(before), local + ' canonical');
-  assert.deepEqual(alternates(after), alternates(before), local + ' language alternates');
-  assert.equal(title(after), title(before), local + ' title');
+  assert.equal(canonical(after), before.canonical, local + ' canonical');
+  assert.deepEqual(alternates(after), before.alternates, local + ' language alternates');
+  assert.equal(title(after), before.title, local + ' title');
   for (const key of ['description', 'og:title', 'og:description', 'og:url', 'twitter:title', 'twitter:description']) {
-    assert.equal(meta(after, key), meta(before, key), local + ' ' + key);
+    assert.equal(meta(after, key), before.meta[key] ?? undefined, local + ' ' + key);
   }
   const htmlTag = tags(after, 'html')[0];
-  const originalTag = tags(before, 'html')[0];
-  assert.equal(htmlTag.lang, originalTag.lang, local + ' language');
-  assert.equal(htmlTag.dir, originalTag.dir, local + ' direction');
+  assert.equal(htmlTag.lang, before.lang, local + ' language');
+  assert.equal(htmlTag.dir, before.dir ?? undefined, local + ' direction');
   const icon = tags(after, 'link').filter(tag => tag.rel === 'icon');
   assert.equal(icon.length, 1, local + ' single icon');
   assert.equal(icon[0].href, '/' + site.favicon + '?v=20261017', local + ' favicon');
@@ -54,7 +52,12 @@ for (const file of originals) {
   assert.doesNotMatch(after, /class="[^"]*\bpublic-navigation\b/, local + ' duplicate Explore bar');
   assert.match(after, /<script type="application\/ld\+json">/, local + ' structured data');
   const json = after.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
-  assert.ok(JSON.parse(json)['@graph']?.some(node => node['@type'] === 'WebPage' && node.url === canonical(before)), local + ' schema URL');
+  assert.ok(JSON.parse(json)['@graph']?.some(node => node['@type'] === 'WebPage' && node.url === before.canonical), local + ' schema URL');
+  for (const payload of ['index.txt', '__next._full.txt', '__next._tree.txt', '__next.$oc$segments/__PAGE__.txt']) {
+    const rsc = await readFile(join(root, 'out', dirname(local), payload), 'utf8');
+    assert.match(rsc, /^[\da-f]+:/m, local + ' React Server Component payload: ' + payload);
+    assert.doesNotMatch(rsc, /^\s*(?:<!doctype\s+html|<html\b)/i, local + ' payload must not be an HTML fallback');
+  }
   for (const link of tags(after, 'a')) {
     if (!link.href?.startsWith('/') || link.href.startsWith('//')) continue;
     const path = new URL(link.href, 'https://' + site.domain).pathname;
@@ -78,6 +81,20 @@ assert.equal(checkoutUrl(-1, site.source), null, 'Invalid package blocked');
 assert.match(checkoutUrl(148, site.source), new RegExp('utm_source=' + site.source));
 assert.match(newRequestId(), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 assert.equal(availablePlans([{ id: 1, type: 'iptv', is_available: false, price_amount: 9, duration_months: 1, currency: 'USD' }]).length, 0);
+for (const component of ['SiteHeader', 'SiteFooter', 'HomePage', 'ContentPage']) {
+  const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
+  assert.match(source, /import\s+Link\s+from\s+['"]next\/link['"]/, component + ' Next Link import');
+  assert.match(source, /<Link\b/, component + ' client-side navigation');
+  assert.doesNotMatch(source, /<a\b[^>]*\bhref=\{pathFor\(/, component + ' internal page navigation must use Next Link');
+  assert.doesNotMatch(source, /(?:window\.)?location\.(?:assign|replace|reload)\s*\(|(?:window\.)?location(?:\.href)?\s*=/, component + ' must not force document navigation');
+}
+for (const component of ['ConsentProvider', 'Catalog', 'SupportWidget']) {
+  const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
+  assert.match(source, /usePathname/, component + ' must react to client route changes');
+}
+for (const legacy of [...originals.map(route => route.file), 'app.js', 'build-locales.mjs', 'build-pages.mjs']) {
+  await assert.rejects(() => access(join(root, legacy)), { code: 'ENOENT' }, 'Legacy setup remains: ' + legacy);
+}
 const originalFetch = globalThis.fetch;
 let calls = 0;
 try {
@@ -88,4 +105,4 @@ try {
   globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ errors: { email: ['Invalid'] } }), { status: 422 }); };
   await assert.rejects(() => postLanding('leads', { brand: site.brand }), error => error.status === 422 && !!error.fields?.email);
 } finally { globalThis.fetch = originalFetch; }
-console.log(site.domain + ': 190 Next routes, 10 languages, metadata/hreflang/schema, all internal links and unchanged sitemap/robots/favicon verified. ' + calls + ' mocked form responses checked; no real submissions.');
+console.log(site.domain + ': 190 Next routes, 10 languages, metadata/hreflang/schema, all internal links, Next Link source, 760 RSC payloads, legacy removal and unchanged sitemap/robots/favicon verified. ' + calls + ' mocked form responses checked; no real submissions.');

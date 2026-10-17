@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useConsent } from './ConsentProvider.jsx';
 import { useCatalog } from './Catalog.jsx';
 import { centralUrl, message, newRequestId, postLanding } from '../lib/api.js';
@@ -11,12 +12,16 @@ const CHAT_EMBED = 'https://embed.tawk.to/6ac929cd7f1f3634beb0e4f6/1k4gsmj54';
 const WHATSAPP_MESSAGE = 'Hi, I saw your featured IPTV content and I am interested. Please share subscription details and how to start.';
 
 export function SupportProvider({ children }) {
+  const pathname = usePathname();
   const [request, setRequest] = useState(null);
   const openContact = useCallback((channel, trigger) => {
     if (channel !== 'whatsapp' && channel !== 'tawk') return;
-    setRequest({ channel, trigger });
-  }, []);
-  const value = useMemo(() => ({ openContact, request }), [openContact, request]);
+    setRequest({ channel, trigger, pathname });
+  }, [pathname]);
+  useEffect(() => { setRequest(null); }, [pathname]);
+  const value = useMemo(() => ({
+    openContact, request: request?.pathname === pathname ? request : null,
+  }), [openContact, request, pathname]);
   return <SupportContext.Provider value={value}>{children}</SupportContext.Provider>;
 }
 
@@ -27,6 +32,11 @@ export function useSupport() {
 }
 
 export default function SupportWidget({ site, locale, ui, text }) {
+  const pathname = usePathname();
+  const currentPath = useRef(pathname);
+  const currentUi = useRef(ui);
+  currentPath.current = pathname;
+  currentUi.current = ui;
   const { openContact, request } = useSupport();
   const { analyticsAllowed, session } = useConsent();
   const { data } = useCatalog();
@@ -38,6 +48,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
   const operation = useRef(null);
   const pending = useRef(false);
   const savedChat = useRef(() => {});
+  const resetChat = useRef(() => {});
   const [channel, setChannel] = useState('whatsapp');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
@@ -54,6 +65,21 @@ export default function SupportWidget({ site, locale, ui, text }) {
   useEffect(() => {
     setContactHref(centralUrl('/contact', site.source));
   }, [site.source]);
+
+  useEffect(() => {
+    opener.current = null;
+    requestId.current = null;
+    operation.current?.abort();
+    operation.current = null;
+    pending.current = false;
+    dialog.current?.close();
+    form.current?.reset();
+    setBusy(false);
+    setStatus('');
+    setHasError(false);
+    setChatStatus('');
+    resetChat.current();
+  }, [pathname]);
 
   useEffect(() => {
     if (!request || !dialog.current) return;
@@ -83,6 +109,8 @@ export default function SupportWidget({ site, locale, ui, text }) {
     let ready = typeof api.maximize === 'function' && typeof api.showWidget === 'function';
     let loading = false;
     let requested = false;
+    let requestedPath = null;
+    let feedbackPath = currentPath.current;
     let timer;
     let script;
     const previous = {};
@@ -95,6 +123,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
     };
     const closeChat = () => {
       requested = false;
+      requestedPath = null;
       api.hideWidget?.();
       if (active) {
         setChatExpanded(false);
@@ -102,6 +131,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
       }
     };
     const showChat = () => {
+      if (!active || !requested || requestedPath !== currentPath.current) return closeChat();
       api.showWidget?.();
       api.maximize?.();
     };
@@ -119,7 +149,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
       },
       onChatMaximized: () => {
         if (!active) return;
-        if (!requested) {
+        if (!requested || requestedPath !== currentPath.current) {
           api.minimize?.();
           closeChat();
           return;
@@ -129,8 +159,11 @@ export default function SupportWidget({ site, locale, ui, text }) {
       },
       onChatMinimized: () => {
         if (!active) return;
+        const previousPath = requestedPath;
         closeChat();
-        requestAnimationFrame(() => { if (active) chatLauncher.current?.focus(); });
+        requestAnimationFrame(() => {
+          if (active && previousPath === currentPath.current) chatLauncher.current?.focus();
+        });
       },
     };
     for (const [key, handler] of Object.entries(handlers)) {
@@ -140,6 +173,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
     const loadWidget = () => {
       if (!active || loading || ready) return;
       loading = true;
+      feedbackPath = currentPath.current;
       script = document.getElementById('landing-tawk-embed');
       if (!script) {
         script = document.createElement('script');
@@ -154,7 +188,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
           clearTimeout(timer);
           setChatBusy(false);
           setChatExpanded(false);
-          setChatStatus(message(ui, 'chatFailed'));
+          if (feedbackPath === currentPath.current) setChatStatus(message(currentUi.current, 'chatFailed'));
           script.remove();
         };
         document.head.appendChild(script);
@@ -162,21 +196,28 @@ export default function SupportWidget({ site, locale, ui, text }) {
       timer = setTimeout(() => {
         if (!active || ready) return;
         setChatBusy(false);
-        setChatStatus(message(ui, 'chatSlow'));
+        if (feedbackPath === currentPath.current) setChatStatus(message(currentUi.current, 'chatSlow'));
       }, 15000);
     };
     savedChat.current = () => {
       if (!active) return;
       requested = true;
+      requestedPath = currentPath.current;
+      feedbackPath = currentPath.current;
       if (ready) {
         showChat();
       } else if (loading) {
-        setChatStatus(message(ui, 'chatLoading'));
+        setChatStatus(message(currentUi.current, 'chatLoading'));
       } else {
         setChatBusy(true);
-        setChatStatus(message(ui, 'chatOpening'));
+        setChatStatus(message(currentUi.current, 'chatOpening'));
         loadWidget();
       }
+    };
+    resetChat.current = () => {
+      closeChat();
+      clearTimeout(timer);
+      setChatStatus('');
     };
     closeChat();
     if (!window.matchMedia('(max-width: 768px)').matches) loadWidget();
@@ -185,6 +226,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
       requested = false;
       clearTimeout(timer);
       savedChat.current = () => {};
+      resetChat.current = () => {};
       api.hideWidget?.();
       if (script && !ready) {
         script.onerror = null;
@@ -194,7 +236,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
         if (api[key] === handler) api[key] = previous[key];
       }
     };
-  }, [ui]);
+  }, []);
 
   function cancelContact() {
     requestId.current = null;
@@ -238,6 +280,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
     }
     const controller = new AbortController();
     const eventId = requestId.current;
+    const submittedPath = currentPath.current;
     operation.current = controller;
     pending.current = true;
     setBusy(true);
@@ -255,7 +298,8 @@ export default function SupportWidget({ site, locale, ui, text }) {
     try {
       const result = await postLanding('leads', payload, { signal: controller.signal });
       if (result?.ok !== true) throw new Error('unconfirmed');
-      if (operation.current !== controller || requestId.current !== eventId || !dialog.current?.open) return;
+      if (operation.current !== controller || requestId.current !== eventId
+        || currentPath.current !== submittedPath || !dialog.current?.open) return;
       setStatus(message(ui, 'saved'));
       currentForm.reset();
       operation.current = null;
@@ -266,7 +310,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
       if (channel === 'whatsapp') window.location.assign(whatsappHref);
       else savedChat.current();
     } catch (error) {
-      if (operation.current !== controller || requestId.current !== eventId) return;
+      if (operation.current !== controller || requestId.current !== eventId || currentPath.current !== submittedPath) return;
       const field = ['name', 'email', 'phone', 'message', 'contact_consent'].find(key => error.fields?.[key]);
       const key = error.name === 'AbortError' ? 'saveTimeout'
         : error.status === 429 ? 'tooMany' : error.status === 409 ? 'conflict'
@@ -274,7 +318,7 @@ export default function SupportWidget({ site, locale, ui, text }) {
       setStatus(field ? message(ui, 'invalidField', { field: message(ui, `field_${field}`) }) : message(ui, key));
       setHasError(true);
       if (field) requestAnimationFrame(() => {
-        if (requestId.current === eventId && dialog.current?.open) currentForm.elements.namedItem(field)?.focus();
+        if (requestId.current === eventId && currentPath.current === submittedPath && dialog.current?.open) currentForm.elements.namedItem(field)?.focus();
       });
     } finally {
       if (operation.current === controller) {

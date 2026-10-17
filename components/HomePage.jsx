@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Catalog, { useCatalog } from './Catalog';
 import { useSupport } from './SupportWidget';
 import { copy, pathFor } from '../lib/site';
@@ -55,7 +56,7 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
           <p className="eyebrow"><span aria-hidden="true" />{t(theme.eyebrow)}</p>
           <h1 id="hero-heading">{content.hero_heading || site.name}</h1>
           <p className="hero-description">{content.hero_description}</p>
-          <div className="hero-actions"><a href="#plans" className="button button-primary">{nav.packages || labels.packages}<span aria-hidden="true">↗</span></a><a href={pathFor(locale, 'setup')} className="text-link">{nav.setup || labels.setup}<span aria-hidden="true">→</span></a></div>
+          <div className="hero-actions"><a href="#plans" className="button button-primary">{nav.packages || labels.packages}<span aria-hidden="true">↗</span></a><Link href={pathFor(locale, 'setup')} className="text-link">{nav.setup || labels.setup}<span aria-hidden="true">→</span></Link></div>
           <p className="hero-note">{theme.note.map(t).join(' ')}</p>
         </div>
         <div className="hero-visual"><ScreenArtwork brand={site.brand} />
@@ -64,7 +65,7 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
       </div>
     </section>
 
-    <div className="source-strip"><div className="container source-strip-inner"><p><span className="source-dot" aria-hidden="true" />{t(theme.catalogue)}</p><a href={pathFor(locale, 'about')}>{nav.about}<span aria-hidden="true">↗</span></a></div></div>
+    <div className="source-strip"><div className="container source-strip-inner"><p><span className="source-dot" aria-hidden="true" />{t(theme.catalogue)}</p><Link href={pathFor(locale, 'about')}>{nav.about}<span aria-hidden="true">↗</span></Link></div></div>
 
     <section className="section plans-section" id="plans" aria-labelledby="plans-heading"><div className="container plans-layout">
       <div className="section-heading plans-heading"><div><p className="eyebrow">{t(theme.plans)}</p><h2 id="plans-heading">{nav.packages || labels.packages}</h2></div><p>{t('Prices and availability come from Opplex IPTV. Review your final order details before paying.')}</p></div>
@@ -74,7 +75,7 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
     {highlights.length > 0 && <section className="highlights-section container" aria-label={nav.packages || labels.packages}><div className="highlights-grid">{highlights.map((item, index) => <div className="highlight-item" key={item}><span className="highlight-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><p>{item}</p><span aria-hidden="true">↗</span></div>)}</div></section>}
 
     <section className="section devices-section" id="devices" aria-labelledby="devices-heading"><div className="container device-layout">
-      <div className="devices-intro"><p className="eyebrow">{nav['iptv-applications']}</p><h2 id="devices-heading">{theme.deviceTitle.map(t).join(' ')}</h2><p>{t(theme.deviceIntro)}</p><a className="text-link" href={pathFor(locale, 'iptv-applications')}>{nav['iptv-applications']}<span aria-hidden="true">↗</span></a></div>
+      <div className="devices-intro"><p className="eyebrow">{nav['iptv-applications']}</p><h2 id="devices-heading">{theme.deviceTitle.map(t).join(' ')}</h2><p>{t(theme.deviceIntro)}</p><Link className="text-link" href={pathFor(locale, 'iptv-applications')}>{nav['iptv-applications']}<span aria-hidden="true">↗</span></Link></div>
       <div className="devices-panel"><div className="device-drawing" aria-hidden="true"><span className="draw-monitor" /><span className="draw-tablet" /><span className="draw-phone" /></div><div className="device-list">{(devices || []).map(device => <div className="device-item" key={device.id || device.name}><span className="device-dot" aria-hidden="true" /><span>{device.name}</span></div>)}</div>
         {deviceError && <p className="field-help" role="status">{message(ui, deviceError)}</p>}
         {!deviceError && !(devices || []).length && <p role="status">{t('Loading device information…')}</p>}
@@ -84,9 +85,9 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
 
     {(content.guide_heading || guides.length > 0) && <section className="section guide-section" id="guide" aria-labelledby="guide-heading"><div className="container"><div className="section-heading"><div><p className="eyebrow">{t(theme.guide)}</p><h2 id="guide-heading">{content.guide_heading}</h2></div><p>{content.guide_intro}</p></div><div className="guide-grid">{guides.map((item, index) => <article className="guide-card" key={item.heading}><span className="guide-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3>{item.heading}</h3><p>{item.body}</p></article>)}</div></div></section>}
 
-    {faqs.length > 0 && <section className="section faq-section" id="faq" aria-labelledby="faq-heading"><div className="container faq-layout"><div className="faq-intro"><p className="eyebrow">{t(theme.faq)}</p><h2 id="faq-heading">{nav.faqs}</h2><p>{t(site.brand === 'geo' ? 'Good questions deserve a clear starting point. Here’s useful information from Opplex IPTV, all in one place.' : 'Useful information from Opplex IPTV, brought together before you choose.')}</p><a className="text-link" href={pathFor(locale, 'faqs')}>{nav.faqs}<span aria-hidden="true">↗</span></a></div><div className="faq-list">{faqs.map(item => <details className="faq-item" key={item.question}><summary>{item.question}<span className="faq-plus" aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div></div></section>}
+    {faqs.length > 0 && <section className="section faq-section" id="faq" aria-labelledby="faq-heading"><div className="container faq-layout"><div className="faq-intro"><p className="eyebrow">{t(theme.faq)}</p><h2 id="faq-heading">{nav.faqs}</h2><p>{t(site.brand === 'geo' ? 'Good questions deserve a clear starting point. Here’s useful information from Opplex IPTV, all in one place.' : 'Useful information from Opplex IPTV, brought together before you choose.')}</p><Link className="text-link" href={pathFor(locale, 'faqs')}>{nav.faqs}<span aria-hidden="true">↗</span></Link></div><div className="faq-list">{faqs.map(item => <details className="faq-item" key={item.question}><summary>{item.question}<span className="faq-plus" aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div></div></section>}
 
-    {articles.length > 0 && <section className="section articles-section container" aria-labelledby="articles-heading"><div className="section-heading"><h2 id="articles-heading">{nav.blogs}</h2><a className="text-link" href={pathFor(locale, 'blogs')}>{labels.readMore}<span aria-hidden="true">↗</span></a></div><div className="article-grid">{articles.map((article, index) => <article className="article-card" key={article.slug}><span className="article-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3><a href={pathFor(locale, article.slug)}>{article.title}</a></h3><p>{article.description}</p><a className="text-link" href={pathFor(locale, article.slug)}>{labels.readMore}<span aria-hidden="true">→</span></a></article>)}</div></section>}
+    {articles.length > 0 && <section className="section articles-section container" aria-labelledby="articles-heading"><div className="section-heading"><h2 id="articles-heading">{nav.blogs}</h2><Link className="text-link" href={pathFor(locale, 'blogs')}>{labels.readMore}<span aria-hidden="true">↗</span></Link></div><div className="article-grid">{articles.map((article, index) => <article className="article-card" key={article.slug}><span className="article-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3><Link href={pathFor(locale, article.slug)}>{article.title}</Link></h3><p>{article.description}</p><Link className="text-link" href={pathFor(locale, article.slug)}>{labels.readMore}<span aria-hidden="true">→</span></Link></article>)}</div></section>}
     <SupportSection site={site} locale={locale} labels={labels} text={text} />
   </main>;
 }
