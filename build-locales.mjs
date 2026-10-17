@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { EN_UI, SUPPORTED_LOCALES } from './app.js';
+import { addPublicPages } from './build-pages.mjs';
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 const check = process.argv.includes('--check');
@@ -20,6 +21,7 @@ const normalize = value => decode(value).replace(/\s+/g, ' ').trim();
 let source = await readFile(join(root, 'index.html'), 'utf8');
 source = source.replace(/\r\n/g, '\n')
   .replace(/\n[ \t]*<!-- landing-language-(?:head|switch):start -->[\s\S]*?<!-- landing-language-(?:head|switch):end -->/g, '')
+  .replace(/\n[ \t]*<!-- landing-pages-nav:start -->[\s\S]*?<!-- landing-pages-nav:end -->/g, '')
   .replace(/<html\b[^>]*>/, '<html lang="en">')
   .replace('href="./styles.css"', 'href="/styles.css"').replace('src="./app.js"', 'src="/app.js"');
 const domain = source.match(/data-domain="([a-z0-9.-]+)"/)?.[1];
@@ -120,6 +122,7 @@ for (const locale of SUPPORTED_LOCALES) {
 }
 const urls = SUPPORTED_LOCALES.map(locale => `  <url>\n    <loc>${origin}${pathFor(locale)}</loc>\n${SUPPORTED_LOCALES.map(code => `    <xhtml:link rel="alternate" hreflang="${code}" href="${origin}${pathFor(code)}"/>`).join('\n')}\n    <xhtml:link rel="alternate" hreflang="x-default" href="${origin}/"/>\n  </url>`).join('\n');
 outputs.set(join(root, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`);
+await addPublicPages({ root, outputs, origin, locales: SUPPORTED_LOCALES });
 for (const [path, html] of outputs) {
   if (check) {
     if (await readFile(path, 'utf8') !== html) throw new Error(`Generated output is stale: ${path}`);

@@ -373,6 +373,14 @@ function startExperience() {
     const href = centralUrl(link.dataset.centralPath, document.body.dataset.source);
     if (href) link.href = href;
   });
+  document.querySelectorAll('[data-local-path]').forEach(link => {
+    link.href = `/${activeLocale === 'en' ? '' : activeLocale + '/'}${link.dataset.localPath.replace(/^\/+|\/+$/g, '')}/`;
+  });
+  document.querySelectorAll('[data-public-contact]').forEach(button => {
+    button.addEventListener('click', () => requestContact('whatsapp', button, () => {
+      window.location.assign(byId('support-whatsapp').href);
+    }));
+  });
   trackVisit();
   return { requestContact, track, checkoutLink };
 }
@@ -485,13 +493,16 @@ function startLanding(experience) {
   const byId = id => document.getElementById(id);
   const source = document.body.dataset.source;
   const brand = brandForSource(source);
+  const publicPage = document.body.dataset.page;
   let request;
   let version = 0;
   const contentFallbacks = Array.from(document.querySelectorAll(
     '#hero-heading, .hero-description, #yearly-guide-heading, .yearly-guide .guide-heading > p:last-child, .guide-columns, #getting-started-heading, .getting-started .section-heading > p, .getting-started-grid, #comparison-guide-heading, .comparison-guide .heading-note, .comparison-guide-grid, #connection-guide-heading, .connection-guide-intro, .connection-guide-grid'
   ), node => ({ node, template: node.cloneNode(true) }));
   byId('year').textContent = new Date().getFullYear();
-  byId('support-link').href = centralUrl('/contact', source);
+  byId('support-link').href = document.body.dataset.publicPages === 'true'
+    ? `/${activeLocale === 'en' ? '' : activeLocale + '/'}contact/`
+    : centralUrl('/contact', source);
 
   function renderSupport(data) {
     const settings = data.support || {};
@@ -520,7 +531,9 @@ function startLanding(experience) {
         if (!link || !allowed.includes(link.url) || typeof link.label !== 'string') return [];
         const legalKeys = { '/terms-of-service': 'terms', '/privacy-policy': 'privacy', '/refund-policy': 'refund' };
         const anchor = element('a', '', translate(legalKeys[link.url]));
-        anchor.href = centralUrl(link.url);
+        anchor.href = document.body.dataset.publicPages === 'true'
+          ? `/${activeLocale === 'en' ? '' : activeLocale + '/'}${link.url.slice(1)}/`
+          : centralUrl(link.url);
         return [anchor];
       });
       if (anchors.length) byId('legal-links').replaceChildren(...anchors);
@@ -684,20 +697,22 @@ function startLanding(experience) {
     byId('retry-catalog').hidden = true;
     byId('catalog-status').textContent = translate('loadingBrand');
     byId('api-status').textContent = translate('connecting');
-    byId('devices-status').textContent = translate('loadingDevices');
-    renderContent(languageData.content);
+    if (!publicPage) {
+      byId('devices-status').textContent = translate('loadingDevices');
+      renderContent(languageData.content);
+    }
     if (!brand) {
       showPlanError(translate('missingBrand'));
       byId('retry-catalog').hidden = true;
       return;
     }
-    void loadDevices(request.signal, currentVersion);
+    if (!publicPage) void loadDevices(request.signal, currentVersion);
     try {
       const data = await getApiData(`brands/${brand}/content?locale=${activeLocale}`, request.signal);
       if (currentVersion !== version) return;
       if (data.brand !== brand || typeof data.provider_name !== 'string' || !data.provider_name.trim()) throw new Error('Unexpected catalog');
       renderSupport(data);
-      renderContent(data.locale === activeLocale ? data.content : languageData.content);
+      if (!publicPage) renderContent(data.locale === activeLocale ? data.content : languageData.content);
       const plans = availablePlans(data.packages);
       if (!plans.length) {
         showPlanError(translate('noPlans'));
@@ -720,8 +735,14 @@ function startLanding(experience) {
     }
   }
 
-  byId('retry-catalog').addEventListener('click', () => { void loadCatalog(); });
-  void loadCatalog();
+  if (publicPage && publicPage !== 'packages') {
+    void getApiData(`brands/${brand}/content?locale=${activeLocale}`).then(data => {
+      if (data.brand === brand) renderSupport(data);
+    }).catch(() => {});
+  } else {
+    byId('retry-catalog').addEventListener('click', () => { void loadCatalog(); });
+    void loadCatalog();
+  }
 }
 
 if (typeof document !== 'undefined') {
