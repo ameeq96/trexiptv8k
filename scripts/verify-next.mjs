@@ -54,7 +54,14 @@ for (const before of originals) {
   const json = after.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
   assert.ok(JSON.parse(json)['@graph']?.some(node => node['@type'] === 'WebPage' && node.url === before.canonical), local + ' schema URL');
   for (const payload of ['index.txt', '__next._full.txt', '__next._tree.txt', '__next.$oc$segments/__PAGE__.txt']) {
-    const rsc = await readFile(join(root, 'out', dirname(local), payload), 'utf8');
+    let rsc;
+    try {
+      rsc = await readFile(join(root, 'out', dirname(local), payload), 'utf8');
+    } catch (error) {
+      if (error.code !== 'ENOENT' || payload !== '__next.$oc$segments/__PAGE__.txt') throw error;
+      rsc = await readFile(join(root, 'out', dirname(local), '__next.$oc$segments.__PAGE__.txt'), 'utf8');
+    }
+    assert.ok(rsc.trim().length > 0, local + ' nonempty React Server Component payload: ' + payload);
     assert.match(rsc, /^[\da-f]+:/m, local + ' React Server Component payload: ' + payload);
     assert.doesNotMatch(rsc, /^\s*(?:<!doctype\s+html|<html\b)/i, local + ' payload must not be an HTML fallback');
   }
