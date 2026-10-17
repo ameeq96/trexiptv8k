@@ -28,7 +28,7 @@ export default function ContentPage({ site, locale, page, pages = [], labels = {
     <div className="container">
       <nav className="breadcrumb" aria-label={labels.pages}><Link href={pathFor(locale)}>{nav.home || labels.home}</Link><span aria-hidden="true">/</span>{page.kind === 'article' && <><Link href={pathFor(locale, 'blogs')}>{nav.blogs}</Link><span aria-hidden="true">/</span></>}<span aria-current="page">{nav[page.slug] || page.title}</span></nav>
       <header className="page-heading"><p className="eyebrow">{nav[page.slug] || labels.guide}</p><h1>{page.title}</h1><p className="page-intro">{page.intro}</p></header>
-      {isPackages && <section className="page-catalog" aria-label={labels.packages}><Catalog site={site} locale={locale} ui={ui} labels={{ retry: labels.retry }} /></section>}
+      {isPackages && <section className="page-catalog" aria-label={labels.packages}><Catalog site={site} locale={locale} ui={ui} labels={{ heading: nav.packages || labels.packages, retry: labels.retry }} /></section>}
       <div className="content-layout">
         <article className="page-copy">
           {policy && <aside className="policy-notice"><p>{labels.disclaimer}</p><a href={centralUrl('/' + page.slug, site.source, origin)}>{labels.governingPolicy} — opplexiptv.com <span aria-hidden="true">↗</span></a></aside>}

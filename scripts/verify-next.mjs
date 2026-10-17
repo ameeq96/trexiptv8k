@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile, readdir, access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
-import { site, SUPPORTED_LOCALES } from '../lib/site.js';
+import { site, SUPPORTED_LOCALES, pathFor } from '../lib/site.js';
 import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding } from '../lib/api.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -24,18 +24,94 @@ function meta(html, key) { return tags(html, 'meta').find(tag => tag.name === ke
 function canonical(html) { return tags(html, 'link').find(tag => tag.rel === 'canonical')?.href; }
 function alternates(html) { return tags(html, 'link').filter(tag => tag.rel === 'alternate' && tag.hreflang).map(tag => tag.hreflang + ':' + tag.href).sort(); }
 function title(html) { return decode(html.match(/<title>([\s\S]*?)<\/title>/)?.[1] || ''); }
+const visibleHtml = html => html.replace(/<script\b[\s\S]*?<\/script>/gi, '').replace(/<style\b[\s\S]*?<\/style>/gi, '');
+const text = html => decode(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+const identifiers = html => tags(html, '[a-z][\\w:-]*').filter(tag => Object.hasOwn(tag, 'id')).map(tag => tag.id);
+const origin = 'https://' + site.domain;
+
+function verifySchema(html, visible, before, slug) {
+  const local = before.file;
+  const scripts = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+  assert.equal(scripts.length, 1, local + ' single structured-data graph');
+  const schema = JSON.parse(scripts[0][1]);
+  assert.equal(schema['@context'], 'https://schema.org', local + ' schema context');
+  assert.ok(Array.isArray(schema['@graph']), local + ' schema graph');
+  const graph = schema['@graph'];
+  const ids = graph.map(node => node['@id']);
+  assert.equal(new Set(ids).size, ids.length, local + ' unique schema IDs');
+  for (const node of graph) {
+    for (const value of [node['@id'], ...(node.url ? [node.url] : [])]) {
+      const url = new URL(value);
+      assert.ok(url.origin === origin && !url.username && !url.password, local + ' absolute own-domain schema URL');
+    }
+  }
+  const nodeOf = type => {
+    const nodes = graph.filter(node => node['@type'] === type);
+    assert.equal(nodes.length, 1, local + ' single ' + type);
+    return nodes[0];
+  };
+  const website = nodeOf('WebSite');
+  assert.equal(website['@id'], origin + '/#website', local + ' website ID');
+  assert.equal(website.url, origin + '/', local + ' website URL');
+  assert.equal(website.name, site.name, local + ' website name');
+  assert.deepEqual(website.inLanguage, SUPPORTED_LOCALES, local + ' website languages');
+  const page = nodeOf('WebPage');
+  assert.equal(page['@id'], before.canonical + '#webpage', local + ' webpage ID');
+  assert.equal(page.url, before.canonical, local + ' webpage URL');
+  assert.equal(page.name, title(html), local + ' schema title matches metadata');
+  assert.equal(page.description, meta(html, 'description'), local + ' schema description matches metadata');
+  assert.equal(page.inLanguage, before.lang, local + ' schema language');
+  assert.equal(page.isPartOf?.['@id'], website['@id'], local + ' website reference');
+  if (!slug) {
+    assert.equal(graph.filter(node => node['@type'] === 'BreadcrumbList').length, 0, local + ' homepage has no invented breadcrumb');
+    return;
+  }
+  const breadcrumb = nodeOf('BreadcrumbList');
+  assert.equal(breadcrumb['@id'], before.canonical + '#breadcrumb', local + ' breadcrumb ID');
+  assert.equal(page.breadcrumb?.['@id'], breadcrumb['@id'], local + ' breadcrumb reference');
+  const urls = [origin + pathFor(before.lang), ...(slug.startsWith('blogs/') ? [origin + pathFor(before.lang, 'blogs')] : []), before.canonical];
+  assert.ok(Array.isArray(breadcrumb.itemListElement), local + ' breadcrumb items');
+  assert.deepEqual(breadcrumb.itemListElement.map(item => item.item), urls, local + ' breadcrumb hierarchy');
+  const markup = visible.match(/<nav\b[^>]*class="breadcrumb"[^>]*>([\s\S]*?)<\/nav>/)?.[1] || '';
+  const displayed = [...markup.matchAll(/<(a|span)\b([^>]*)>([\s\S]*?)<\/\1>/g)]
+    .map(([, tag, attrs, label]) => ({ tag, ...attributes(attrs), label: text(label) }))
+    .filter(item => item['aria-hidden'] !== 'true');
+  assert.equal(displayed.length, urls.length, local + ' visible breadcrumb hierarchy');
+  breadcrumb.itemListElement.forEach((item, index) => {
+    assert.equal(item['@type'], 'ListItem', local + ' breadcrumb item type');
+    assert.equal(item.position, index + 1, local + ' breadcrumb position');
+    assert.ok(typeof item.name === 'string' && item.name.trim(), local + ' breadcrumb name');
+    assert.ok(displayed[index].label, local + ' visible breadcrumb label');
+    if (index < urls.length - 1) assert.equal(new URL(displayed[index].href, before.canonical).href, item.item, local + ' visible breadcrumb link');
+    else assert.equal(displayed[index]['aria-current'], 'page', local + ' current breadcrumb');
+  });
+}
 
 const baseline = JSON.parse(await readFile(join(root, 'data', 'seo-baseline.json'), 'utf8'));
 const originals = baseline.routes;
 assert.equal(originals.length, 190, 'Unexpected existing route inventory');
 assert.equal(new Set(originals.map(route => route.file)).size, 190, 'Duplicate baseline route');
 const expected = new Set();
+const titles = new Set();
+const descriptions = new Set();
+const idsByPath = new Map();
 for (const before of originals) {
   const local = before.file;
   expected.add(local);
   const after = await readFile(join(root, 'out', local), 'utf8');
+  const visible = visibleHtml(after);
+  const pageTitle = title(after).trim();
+  const description = meta(after, 'description')?.trim();
+  assert.ok(pageTitle && !titles.has(pageTitle), local + ' nonempty unique title');
+  assert.ok(description && !descriptions.has(description), local + ' nonempty unique description');
+  titles.add(pageTitle);
+  descriptions.add(description);
+  assert.equal(tags(after, 'link').filter(tag => tag.rel === 'canonical').length, 1, local + ' single canonical');
   assert.equal(canonical(after), before.canonical, local + ' canonical');
   assert.deepEqual(alternates(after), before.alternates, local + ' language alternates');
+  const featurePath = local.replace(/^(?:es|fr|it|nl|pt|ru|ur|ar|hi)\//, '');
+  const slug = featurePath.replace(/(?:^|\/)index\.html$/, '');
+  assert.deepEqual(alternates(after), [...SUPPORTED_LOCALES.map(code => code + ':' + origin + pathFor(code, slug)), 'x-default:' + origin + pathFor('en', slug)].sort(), local + ' complete same-page language alternates');
   assert.equal(title(after), before.title, local + ' title');
   for (const key of ['description', 'og:title', 'og:description', 'og:url', 'twitter:title', 'twitter:description']) {
     assert.equal(meta(after, key), before.meta[key] ?? undefined, local + ' ' + key);
@@ -43,16 +119,37 @@ for (const before of originals) {
   const htmlTag = tags(after, 'html')[0];
   assert.equal(htmlTag.lang, before.lang, local + ' language');
   assert.equal(htmlTag.dir, before.dir ?? undefined, local + ' direction');
+  assert.ok(SUPPORTED_LOCALES.includes(htmlTag.lang), local + ' supported HTML language');
+  assert.equal(htmlTag.dir, ['ar', 'ur'].includes(htmlTag.lang) ? 'rtl' : 'ltr', local + ' language direction');
+  for (const tag of tags(after, 'meta').filter(tag => /^(?:robots|googlebot|bingbot)$/i.test(tag.name || ''))) {
+    assert.doesNotMatch(tag.content || '', /\b(?:noindex|none)\b/i, local + ' public page remains indexable');
+  }
   const icon = tags(after, 'link').filter(tag => tag.rel === 'icon');
   assert.equal(icon.length, 1, local + ' single icon');
   assert.equal(icon[0].href, '/' + site.favicon + '?v=20261017', local + ' favicon');
   assert.match(after, /<h1[\s>]/, local + ' initial HTML content');
+  const headings = [...visible.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/g)].map(([, level, label]) => ({ level: Number(level), label: text(label) }));
+  assert.equal(headings.filter(heading => heading.level === 1).length, 1, local + ' exactly one H1');
+  let previousLevel = 0;
+  for (const heading of headings) {
+    assert.ok(heading.label, local + ' nonempty heading');
+    assert.ok(heading.level <= previousLevel + 1, local + ' heading hierarchy H' + previousLevel + ' to H' + heading.level);
+    previousLevel = heading.level;
+  }
+  const ids = identifiers(visible);
+  assert.equal(new Set(ids).size, ids.length, local + ' unique HTML IDs');
+  idsByPath.set(new URL(before.canonical).pathname, new Set(ids));
+  for (const image of tags(visible, 'img')) {
+    assert.ok(Object.hasOwn(image, 'alt'), local + ' image alt attribute');
+    assert.ok(Number(image.width) > 0 && Number(image.height) > 0, local + ' image dimensions');
+  }
   assert.match(after, /\/_next\/static\//, local + ' Next assets');
   assert.doesNotMatch(after, /src="\/app\.js/, local + ' must not execute legacy DOM script');
   assert.doesNotMatch(after, /class="[^"]*\bpublic-navigation\b/, local + ' duplicate Explore bar');
   assert.match(after, /<script type="application\/ld\+json">/, local + ' structured data');
   const json = after.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
   assert.ok(JSON.parse(json)['@graph']?.some(node => node['@type'] === 'WebPage' && node.url === before.canonical), local + ' schema URL');
+  verifySchema(after, visible, before, slug);
   for (const payload of ['index.txt', '__next._full.txt', '__next._tree.txt', '__next.$oc$segments/__PAGE__.txt']) {
     let rsc;
     try {
@@ -65,11 +162,17 @@ for (const before of originals) {
     assert.match(rsc, /^[\da-f]+:/m, local + ' React Server Component payload: ' + payload);
     assert.doesNotMatch(rsc, /^\s*(?:<!doctype\s+html|<html\b)/i, local + ' payload must not be an HTML fallback');
   }
-  for (const link of tags(after, 'a')) {
-    if (!link.href?.startsWith('/') || link.href.startsWith('//')) continue;
-    const path = new URL(link.href, 'https://' + site.domain).pathname;
+  for (const link of tags(visible, 'a')) {
+    assert.ok(link.href?.trim(), local + ' nonempty link destination');
+    const url = new URL(link.href, before.canonical);
+    if (url.origin !== origin) continue;
+    const path = url.pathname;
     const target = path.endsWith('/') ? path + 'index.html' : path;
     await access(join(root, 'out', decodeURIComponent(target))).catch(() => { throw new Error(local + ' broken internal link: ' + path); });
+    if (url.hash) {
+      if (!idsByPath.has(path)) idsByPath.set(path, new Set(identifiers(visibleHtml(await readFile(join(root, 'out', decodeURIComponent(target)), 'utf8')))));
+      assert.ok(idsByPath.get(path).has(decodeURIComponent(url.hash.slice(1))), local + ' broken internal fragment: ' + link.href);
+    }
   }
 }
 const exported = await collect(join(root, 'out'));
@@ -82,6 +185,7 @@ for (const asset of ['robots.txt', 'sitemap.xml', site.favicon]) {
 }
 const sitemap = await readFile(join(root, 'out', 'sitemap.xml'), 'utf8');
 assert.equal([...sitemap.matchAll(/<loc>/g)].length, 190, 'Sitemap page count');
+assert.deepEqual([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, url]) => decode(url)).sort(), originals.map(route => route.canonical).sort(), 'Sitemap matches canonical route inventory');
 assert.equal(SUPPORTED_LOCALES.length, 10);
 assert.equal(centralUrl('https://example.net/checkout'), null, 'Foreign checkout blocked');
 assert.equal(checkoutUrl(-1, site.source), null, 'Invalid package blocked');

@@ -89,7 +89,8 @@ export default async function Page({ params }) {
     { '@type': 'WebPage', '@id': url + '#webpage', url, name: page.title, description: page.description, inLanguage: locale, isPartOf: { '@id': origin + '/#website' }, breadcrumb: { '@id': url + '#breadcrumb' } },
     { '@type': 'BreadcrumbList', '@id': url + '#breadcrumb', itemListElement: [
       { '@type': 'ListItem', position: 1, name: data.labels.home, item: origin + pathFor(locale) },
-      { '@type': 'ListItem', position: 2, name: page.title, item: url },
+      ...(page.kind === 'article' ? [{ '@type': 'ListItem', position: 2, name: nav.blogs, item: origin + pathFor(locale, 'blogs') }] : []),
+      { '@type': 'ListItem', position: page.kind === 'article' ? 3 : 2, name: page.title, item: url },
     ] },
   ] } : homeMetadata(locale).schema;
   const props = { site, locale, text, ui: { ...ui, retry: data.labels.retry }, nav, labels: data.labels };
