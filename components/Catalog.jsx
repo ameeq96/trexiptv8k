@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { usePathname } from 'next/navigation';
 import { availablePlans, durationText, getApiData, message, money } from '../lib/api';
 import { useConsent } from './ConsentProvider';
+import CheckoutResume from './CheckoutResume';
 
 const CatalogContext = createContext(null);
 const PROVIDERS = {
@@ -166,6 +167,7 @@ export default function Catalog({ site, locale, ui, labels = {} }) {
                   {t('checkout')} <span aria-hidden="true">↗</span>
                 </button>
               ))}
+              <CheckoutResume site={site} locale={locale} plan={plan} />
             </article>
           );
         })}

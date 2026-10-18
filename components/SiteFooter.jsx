@@ -5,9 +5,12 @@ import Link from 'next/link';
 import { copy, pathFor } from '../lib/site';
 import { centralUrl } from '../lib/api';
 import { useConsent } from './ConsentProvider';
+import { useCatalog } from './Catalog';
 
 export default function SiteFooter({ site, locale, text = {}, labels = {}, nav = {} }) {
   const { openPrivacy } = useConsent();
+  const { data } = useCatalog();
+  const experienceUi = data?.experience?.ui || {};
   const [origin, setOrigin] = useState('https://opplexiptv.com');
   useEffect(() => { setOrigin(new URL(centralUrl('/account', site.source)).origin); }, [site.source]);
   const t = value => copy(value, text);
@@ -31,6 +34,7 @@ export default function SiteFooter({ site, locale, text = {}, labels = {}, nav =
           <nav className="customer-tools-links" aria-label={t('Customer account and help')}>
             {help.map(([path, name]) => <a key={path} href={centralUrl(path, site.source, origin)}>{t(name)}<span aria-hidden="true">↗</span></a>)}
           </nav>
+          {experienceUi.statusHeading && <Link className="text-link" href={pathFor(locale, 'contact') + '#service-status'}>{experienceUi.statusHeading}<span aria-hidden="true">→</span></Link>}
           <details className="device-checklist"><summary>{t('Before you buy: a quick device checklist')}</summary><ul>{checklist.map(item => <li key={item}>{t(item)}</li>)}</ul></details>
         </div>
       </section>

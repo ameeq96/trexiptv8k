@@ -14,7 +14,7 @@ const BRANDS = ['trex', 'opplex', 'geo', '5g'];
 const MEASUREMENT_COPY = 'Allow this website to record page visits and checkout-button clicks, with a random session ID and selected package ID where relevant. No name, email, phone, message or fingerprint is included in these measurement events. If you allow it, that random session ID can also continue through checkout for source measurement. It does not pass contact details or make the person paying the same person as a lead. This is off unless you allow it.';
 const PROVIDER_COPY = 'Chat providers and the payment website have their own privacy practices. Your contact form works whether you allow measurement or not.';
 
-export default function ConsentProvider({ site, locale, ui, text, children }) {
+export default function ConsentProvider({ site, locale, ui, text, pageSlug = '', experienceUi = {}, children }) {
   const pathname = usePathname();
   const [analyticsAllowed, setAnalyticsAllowed] = useState(false);
   const [origin, setOrigin] = useState('https://opplexiptv.com');
@@ -51,11 +51,13 @@ export default function ConsentProvider({ site, locale, ui, text, children }) {
       session_id: sessionId,
       event,
       analytics_consent: true,
+      locale,
+      page: pageSlug,
       website: '',
     };
     if (Number.isSafeInteger(packageId) && packageId > 0) data.package_id = packageId;
     void postLanding('events', data, { keepalive: true }).catch(() => {});
-  }, [site.brand, session]);
+  }, [site.brand, session, locale, pageSlug]);
 
   useEffect(() => {
     setOrigin(apiOrigin());
@@ -95,8 +97,10 @@ export default function ConsentProvider({ site, locale, ui, text, children }) {
     const url = new URL(href);
     url.searchParams.set('landing_consent', '1');
     url.searchParams.set('landing_session', sessionId);
+    url.searchParams.set('landing_locale', locale);
+    url.searchParams.set('landing_page', pageSlug);
     return url.href;
-  }, [origin, analyticsAllowed, session]);
+  }, [origin, analyticsAllowed, session, locale, pageSlug]);
 
   const openPrivacy = useCallback(() => {
     if (!dialogRef.current || dialogRef.current.open) return;
@@ -136,6 +140,7 @@ export default function ConsentProvider({ site, locale, ui, text, children }) {
         <p className="eyebrow">{translated('Your choice')}</p>
         <h2 id="privacy-dialog-title">{translated('Optional usage measurement')}</h2>
         <p>{translated(MEASUREMENT_COPY)}</p>
+        {experienceUi.measurementDetail && <p>{experienceUi.measurementDetail}</p>}
         <p>{translated(PROVIDER_COPY)}</p>
         <p className="form-status" role="status">
           {message(ui, analyticsAllowed ? 'measurementOn' : 'measurementOff')}

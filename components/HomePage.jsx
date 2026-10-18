@@ -6,6 +6,7 @@ import Catalog, { useCatalog } from './Catalog';
 import { useSupport } from './SupportWidget';
 import { copy, pathFor } from '../lib/site';
 import { centralUrl, message } from '../lib/api';
+import VerifiedReviews from './VerifiedReviews';
 
 const brandCopy = {
   trex: { eyebrow: 'An invitation to switch off', plans: 'The main event', deviceTitle: ['Big screen.', 'Small screen.', 'Your screen.'], deviceIntro: 'Check the device options listed by Opplex IPTV. For setup questions, the support team can help you find the next step.', guide: 'Before you choose', faq: 'Good to know', support: "Let's find your next chapter", catalogue: 'Connected to the Opplex IPTV catalogue', note: ['Current plans from Opplex IPTV. Secure checkout through Opplexify.'] },
@@ -48,6 +49,7 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
   const faqs = content.faqs || [];
   const articles = pages.filter(page => page.kind === 'article');
   const firstPlan = data?.packages?.[0];
+  const experienceUi = data?.experience?.ui || {};
 
   return <main id="main" className={'home-page home-' + site.theme}>
     <section className="hero" aria-labelledby="hero-heading">
@@ -88,6 +90,12 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
     {faqs.length > 0 && <section className="section faq-section" id="faq" aria-labelledby="faq-heading"><div className="container faq-layout"><div className="faq-intro"><p className="eyebrow">{t(theme.faq)}</p><h2 id="faq-heading">{nav.faqs}</h2><p>{t(site.brand === 'geo' ? 'Good questions deserve a clear starting point. Here’s useful information from Opplex IPTV, all in one place.' : 'Useful information from Opplex IPTV, brought together before you choose.')}</p><Link className="text-link" href={pathFor(locale, 'faqs')}>{nav.faqs}<span aria-hidden="true">↗</span></Link></div><div className="faq-list">{faqs.map(item => <details className="faq-item" key={item.question}><summary>{item.question}<span className="faq-plus" aria-hidden="true" /></summary><p>{item.answer}</p></details>)}</div></div></section>}
 
     {articles.length > 0 && <section className="section articles-section container" aria-labelledby="articles-heading"><div className="section-heading"><h2 id="articles-heading">{nav.blogs}</h2><Link className="text-link" href={pathFor(locale, 'blogs')}>{labels.readMore}<span aria-hidden="true">↗</span></Link></div><div className="article-grid">{articles.map((article, index) => <article className="article-card" key={article.slug}><span className="article-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h3><Link href={pathFor(locale, article.slug)}>{article.title}</Link></h3><p>{article.description}</p><Link className="text-link" href={pathFor(locale, article.slug)}>{labels.readMore}<span aria-hidden="true">→</span></Link></article>)}</div></section>}
+    {experienceUi.toolsHeading && <section className="section experience-intro container" aria-labelledby="customer-help-heading">
+      <p className="eyebrow">{site.name}</p><h2 id="customer-help-heading">{experienceUi.toolsHeading}</h2><p>{experienceUi.toolsIntro}</p>
+      <div className="experience-actions"><Link className="button button-secondary" href={pathFor(locale, 'setup') + '#help-assistant'}>{experienceUi.openHelp}<span aria-hidden="true">→</span></Link>
+        <Link className="text-link" href={pathFor(locale, 'contact') + '#service-status'}>{experienceUi.statusHeading}<span aria-hidden="true">→</span></Link></div>
+      <VerifiedReviews locale={locale} />
+    </section>}
     <SupportSection site={site} locale={locale} labels={labels} text={text} />
   </main>;
 }

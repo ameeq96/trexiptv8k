@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { site, SUPPORTED_LOCALES, pathFor } from '../lib/site.js';
 import { loadDictionary } from '../lib/i18n.js';
-import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding } from '../lib/api.js';
+import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding, postResumeLink, savedPlanUrl } from '../lib/api.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 async function collect(directory) {
@@ -200,6 +200,16 @@ for (const before of originals) {
       assert.equal(button['aria-describedby'], 'catalog-status', local + ' checkout status explanation');
     }
   }
+  if (['setup/index.html', 'faqs/index.html'].includes(featurePath)) {
+    assert.match(after, /id="help-assistant"/, local + ' localized interactive help');
+    if (site.brand === 'geo') assert.match(after, /type="search"/, local + ' local help search');
+    else assert.match(after, /<select\b/, local + ' manual decision tree');
+  }
+  if (featurePath === 'contact/index.html') assert.match(after, /id="service-status"/, local + ' truthful published service updates');
+  if (['index.html', 'packages/index.html'].includes(featurePath)) {
+    assert.match(after, /class="checkout-resume"/, local + ' save-plan control');
+    assert.match(after, /name="one_send_consent"/, local + ' separate one-time email permission');
+  }
   assert.match(after, /\/_next\/static\//, local + ' Next assets');
   assert.doesNotMatch(after, /src="\/app\.js/, local + ' must not execute legacy DOM script');
   assert.doesNotMatch(after, /class="[^"]*\bpublic-navigation\b/, local + ' duplicate Explore bar');
@@ -260,6 +270,18 @@ for (const component of ['ConsentProvider', 'Catalog', 'SupportWidget']) {
   const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
   assert.match(source, /usePathname/, component + ' must react to client route changes');
 }
+for (const component of ['ConsentProvider', 'SupportWidget']) {
+  const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
+  assert.match(source, /pageSlug/, component + ' scoped source-page attribution');
+}
+for (const component of ['CheckoutResume', 'HelpAssistant']) {
+  const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
+  assert.doesNotMatch(source, /(?:localStorage|sessionStorage|console\.log)/, component + ' private state stays ephemeral');
+}
+for (const component of ['GuideMedia', 'VerifiedReviews']) {
+  const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
+  assert.match(source, /if \(loading \|\| error/, component + ' published data fails closed');
+}
 
 const catalogSource = await readFile(join(root, 'components', 'Catalog.jsx'), 'utf8');
 assert.doesNotMatch(catalogSource, /packages:\s*\[\]/, 'Catalog must not clear validated reference cards during refresh');
@@ -270,6 +292,10 @@ for (const legacy of [...originals.map(route => route.file), 'app.js', 'build-lo
   await assert.rejects(() => access(join(root, legacy)), { code: 'ENOENT' }, 'Legacy setup remains: ' + legacy);
 }
 const originalFetch = globalThis.fetch;
+assert.equal(savedPlanUrl('https://foreign.example/checkout/resume/private'), null);
+assert.equal(savedPlanUrl('https://opplexiptv.com/checkout/resume/private?email=test'), null);
+assert.equal(savedPlanUrl('javascript:alert(1)'), null);
+assert.equal(savedPlanUrl('https://opplexiptv.com/checkout/resume/private-token'), 'https://opplexiptv.com/checkout/resume/private-token');
 let calls = 0;
 try {
   globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ ok: true }), { status: 202, headers: { 'Content-Type': 'application/json' } }); };
@@ -278,5 +304,17 @@ try {
   await assert.rejects(() => postLanding('leads', { brand: site.brand }));
   globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ errors: { email: ['Invalid'] } }), { status: 422 }); };
   await assert.rejects(() => postLanding('leads', { brand: site.brand }), error => error.status === 422 && !!error.fields?.email);
+  globalThis.fetch = async (url, options) => {
+    calls++;
+    assert.match(String(url), /\/api\/v1\/landing\/resume-links$/);
+    assert.equal(options.credentials, 'omit');
+    assert.equal(JSON.parse(options.body).brand, site.brand);
+    return new Response(JSON.stringify({ ok: true, data: { url: 'https://opplexiptv.com/checkout/resume/private-token', expires_at: '2099-01-01T00:00:00Z', email_sent: false } }), { status: 201 });
+  };
+  assert.equal((await postResumeLink({ brand: site.brand, package_id: 1, locale: 'en', website: '' })).ok, true);
+  globalThis.fetch = async () => { calls++; return new Response(JSON.stringify({ ok: false }), { status: 200 }); };
+  await assert.rejects(() => postResumeLink({ brand: site.brand }));
+  globalThis.fetch = async () => { calls++; return new Response('{}', { status: 429 }); };
+  await assert.rejects(() => postResumeLink({ brand: site.brand }), error => error.status === 429);
 } finally { globalThis.fetch = originalFetch; }
 console.log(site.domain + ': 190 Next routes, 10 languages, metadata/hreflang/schema, all internal links, Next Link source, 760 RSC payloads, legacy removal and unchanged sitemap/robots/favicon verified. ' + calls + ' mocked form responses checked; no real submissions.');

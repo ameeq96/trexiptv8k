@@ -7,6 +7,10 @@ import { SupportSection } from './HomePage';
 import { useSupport } from './SupportWidget';
 import { pathFor } from '../lib/site';
 import { centralUrl } from '../lib/api';
+import HelpAssistant from './HelpAssistant';
+import GuideMedia from './GuideMedia';
+import ServiceUpdates from './ServiceUpdates';
+import VerifiedReviews from './VerifiedReviews';
 
 export default function ContentPage({ site, locale, page, pages = [], labels = {}, ui = {}, text = {}, nav = {} }) {
   const { openContact } = useSupport();
@@ -37,6 +41,9 @@ export default function ContentPage({ site, locale, page, pages = [], labels = {
           {page.kind === 'contact' && <button type="button" className="button button-primary" onClick={event => openContact('whatsapp', event.currentTarget)}>{labels.contact}<span aria-hidden="true">↗</span></button>}
           {page.kind === 'activation' && <a className="button button-primary" href={centralUrl('/' + (page.slug === 'activate-info' ? 'activate-info' : 'activate'), site.source, origin)}>{nav[page.slug] || page.title}<span aria-hidden="true">↗</span></a>}
           {page.kind === 'article' && <Link className="text-link" href={pathFor(locale, 'blogs')}><span aria-hidden="true">←</span>{labels.backToGuides}</Link>}
+          {['setup', 'faqs'].includes(page.slug) && <HelpAssistant key={locale + ':' + page.slug} site={site} locale={locale} pages={pages} />}
+          <GuideMedia locale={locale} slug={page.slug} />
+          {page.kind === 'contact' && <><ServiceUpdates locale={locale} /><VerifiedReviews locale={locale} /></>}
         </article>
         <aside className="page-sidebar"><p className="eyebrow">{labels.setup}</p><nav aria-label={labels.pages}><Link href={pathFor(locale, 'packages')}>{labels.choosePlan}<span aria-hidden="true">↗</span></Link><Link href={pathFor(locale, 'setup')}>{labels.setup}<span aria-hidden="true">↗</span></Link><Link href={pathFor(locale, 'contact')}>{labels.contact}<span aria-hidden="true">↗</span></Link><a href={centralUrl('/account', site.source, origin)}>{labels.account}<span aria-hidden="true">↗</span></a></nav></aside>
       </div>

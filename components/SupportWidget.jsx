@@ -31,7 +31,7 @@ export function useSupport() {
   return context;
 }
 
-export default function SupportWidget({ site, locale, ui, text }) {
+export default function SupportWidget({ site, locale, ui, text, pageSlug = '' }) {
   const pathname = usePathname();
   const currentPath = useRef(pathname);
   const currentUi = useRef(ui);
@@ -294,7 +294,10 @@ export default function SupportWidget({ site, locale, ui, text }) {
       contact_consent: fields.get('contact_consent') === 'on',
       analytics_consent: analyticsAllowed, website: String(fields.get('website') || ''),
     };
-    if (analyticsAllowed) payload.session_id = session();
+    if (analyticsAllowed) {
+      const sessionId = session();
+      if (sessionId) { payload.session_id = sessionId; payload.locale = locale; payload.page = pageSlug; }
+    }
     try {
       const result = await postLanding('leads', payload, { signal: controller.signal });
       if (result?.ok !== true) throw new Error('unconfirmed');

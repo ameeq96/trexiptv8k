@@ -93,7 +93,7 @@ export default async function Page({ params }) {
       { '@type': 'ListItem', position: page.kind === 'article' ? 3 : 2, name: page.title, item: url },
     ] },
   ] } : homeMetadata(locale).schema;
-  const props = { site, locale, text, ui: { ...ui, retry: data.labels.retry }, nav, labels: data.labels };
+  const props = { site, locale, text, ui: { ...ui, retry: data.labels.retry }, nav, labels: data.labels, pageSlug: slug, experienceUi: initialData.experience?.ui || {} };
   return <ConsentProvider {...props}>
     <CatalogProvider site={site} locale={locale} initialData={initialData} initialDevices={initialDevices} withDevices={!slug}>
       <SupportProvider {...props}>
