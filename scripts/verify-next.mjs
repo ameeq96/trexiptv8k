@@ -3,6 +3,7 @@ import { readFile, readdir, access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { site, SUPPORTED_LOCALES, pathFor } from '../lib/site.js';
+import { loadDictionary } from '../lib/i18n.js';
 import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding } from '../lib/api.js';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -28,6 +29,33 @@ const visibleHtml = html => html.replace(/<script\b[\s\S]*?<\/script>/gi, '').re
 const text = html => decode(html.replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
 const identifiers = html => tags(html, '[a-z][\\w:-]*').filter(tag => Object.hasOwn(tag, 'id')).map(tag => tag.id);
 const origin = 'https://' + site.domain;
+
+const sourcePages = {
+  trex: {
+    'iptv-applications': 'https://docs.videolan.me/vlc-android-user/',
+    setup: 'https://support.google.com/googletv/answer/10070482?hl=en',
+    'blogs/check-your-playback-chain': 'https://support.google.com/googletv/answer/10070482?hl=en',
+  },
+  opplex: {
+    'iptv-applications': 'https://docs.videolan.me/vlc-android-user/',
+    'blogs/a-step-by-step-playback-check': 'https://support.google.com/googletv/answer/10070482?hl=en',
+  },
+  geo: { 'iptv-applications': 'https://docs.videolan.me/vlc-android-user/video/video_player.html' },
+  '5g': { 'iptv-applications': 'https://support.apple.com/en-ca/102433' },
+};
+const truthfulLabels = {
+  en: ['Business enquiries', 'Viewing guide', 'Equipment guide'],
+  es: ['Consultas comerciales', 'Guía de visualización', 'Guía de equipos'],
+  fr: ['Demandes professionnelles', 'Guide de visionnage', 'Guide de l’équipement'],
+  it: ['Richieste commerciali', 'Guida alla visione', 'Guida ai dispositivi'],
+  nl: ['Zakelijke vragen', 'Kijkgids', 'Apparatengids'],
+  pt: ['Contactos comerciais', 'Guia de visualização', 'Guia de equipamentos'],
+  ru: ['Вопросы для бизнеса', 'Руководство по просмотру', 'Руководство по устройствам'],
+  ur: ['کاروباری سوالات', 'دیکھنے کی رہنمائی', 'آلات کی رہنمائی'],
+  ar: ['استفسارات الأعمال', 'دليل المشاهدة', 'دليل الأجهزة'],
+  hi: ['व्यावसायिक पूछताछ', 'देखने की गाइड', 'डिवाइस गाइड'],
+};
+const sourceHosts = new Set(['support.google.com', 'support.apple.com', 'docs.videolan.me', 'www.videolan.org']);
 
 function verifySchema(html, visible, before, slug) {
   const local = before.file;
@@ -143,6 +171,35 @@ for (const before of originals) {
     assert.ok(Object.hasOwn(image, 'alt'), local + ' image alt attribute');
     assert.ok(Number(image.width) > 0 && Number(image.height) > 0, local + ' image dimensions');
   }
+
+  const navigation = loadDictionary(before.lang).nav;
+  const menu = visible.match(/<nav\b[^>]*\bid="site-navigation"[^>]*>([\s\S]*?)<\/nav>/)?.[1] || '';
+  const menuLinks = [...menu.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)]
+    .map(([, attrs, label]) => ({ ...attributes(attrs), label: text(label.replace(/<span\b[^>]*aria-hidden="true"[^>]*>[\s\S]*?<\/span>/g, '')) }));
+  for (const [index, key] of ['reseller-panel', 'movies', 'shop'].entries()) {
+    assert.equal(navigation[key], truthfulLabels[before.lang][index], local + ' truthful localized navigation');
+    assert.equal(menuLinks.find(link => new URL(link.href, before.canonical).pathname === pathFor(before.lang, key))?.label, navigation[key], local + ' rendered menu purpose');
+  }
+  const reference = sourcePages[site.brand]?.[slug];
+  if (reference) assert.ok(tags(visible, 'a').some(link => link.href === reference), local + ' official source reference');
+  for (const link of tags(visible, 'a')) {
+    const url = new URL(link.href, before.canonical);
+    if (sourceHosts.has(url.hostname)) {
+      assert.equal(url.protocol, 'https:', local + ' HTTPS source');
+      assert.ok(!url.username && !url.password && (!url.port || url.port === '443'), local + ' safe source authority');
+    }
+  }
+  if (!slug || slug === 'packages') {
+    const cards = tags(visible, 'article').filter(tag => tag.class?.split(/\s+/).includes('plan-card'));
+    assert.ok(cards.length > 0, local + ' server-rendered plans remain visible');
+    assert.equal(tags(visible, 'a').filter(tag => tag.class?.split(/\s+/).includes('plan-cta')).length, 0, local + ' no unverified checkout anchor');
+    const disabled = tags(visible, 'button').filter(tag => tag.class?.split(/\s+/).includes('plan-cta'));
+    assert.equal(disabled.length, cards.length, local + ' disabled checkout per initial plan');
+    for (const button of disabled) {
+      assert.ok(Object.hasOwn(button, 'disabled'), local + ' checkout waits for a fresh price');
+      assert.equal(button['aria-describedby'], 'catalog-status', local + ' checkout status explanation');
+    }
+  }
   assert.match(after, /\/_next\/static\//, local + ' Next assets');
   assert.doesNotMatch(after, /src="\/app\.js/, local + ' must not execute legacy DOM script');
   assert.doesNotMatch(after, /class="[^"]*\bpublic-navigation\b/, local + ' duplicate Explore bar');
@@ -203,6 +260,12 @@ for (const component of ['ConsentProvider', 'Catalog', 'SupportWidget']) {
   const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
   assert.match(source, /usePathname/, component + ' must react to client route changes');
 }
+
+const catalogSource = await readFile(join(root, 'components', 'Catalog.jsx'), 'utf8');
+assert.doesNotMatch(catalogSource, /packages:\s*\[\]/, 'Catalog must not clear validated reference cards during refresh');
+assert.match(catalogSource, /verifiedRequest === requestKey && !loading && !error/, 'Checkout must be bound to the current verified request');
+assert.match(catalogSource, /setVerifiedRequest\(data\.packages\.length \? requestKey : null\)/, 'Only fresh valid plans authorize checkout');
+assert.match(catalogSource, /type="button" disabled/, 'Unverified checkout is a disabled button');
 for (const legacy of [...originals.map(route => route.file), 'app.js', 'build-locales.mjs', 'build-pages.mjs']) {
   await assert.rejects(() => access(join(root, legacy)), { code: 'ENOENT' }, 'Legacy setup remains: ' + legacy);
 }

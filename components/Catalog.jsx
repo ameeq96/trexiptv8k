@@ -33,23 +33,24 @@ export function CatalogProvider({ site, locale, initialData, initialDevices = []
   const [snapshot, setSnapshot] = useState(() => validateCatalog(initialData, site.brand, locale));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [devices, setDevices] = useState(() => validDevices(initialDevices));
+  const [deviceSnapshot, setDeviceSnapshot] = useState(() => ({ locale, enabled: withDevices, rows: validDevices(initialDevices) }));
   const [deviceError, setDeviceError] = useState('');
   const [revision, setRevision] = useState(0);
+  const requestKey = useMemo(() => ({}), [site.brand, locale, withDevices, revision, initialData, pathname]);
+  const [verifiedRequest, setVerifiedRequest] = useState(null);
   const reload = useCallback(() => setRevision(value => value + 1), []);
 
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
-    setSnapshot(current => {
-      const retained = validateCatalog(current, site.brand, locale)
-        || validateCatalog(initialData, site.brand, locale);
-      return retained ? { ...retained, packages: [] } : null;
-    });
+    setSnapshot(current => validateCatalog(current, site.brand, locale)
+      || validateCatalog(initialData, site.brand, locale));
+    setVerifiedRequest(null);
     setLoading(true);
     setError('');
     setDeviceError('');
-    if (withDevices) setDevices([]);
+    if (withDevices) setDeviceSnapshot(current => current.locale === locale && current.enabled
+      ? current : { locale, enabled: true, rows: validDevices(initialDevices) });
 
     if (!Object.hasOwn(PROVIDERS, site.brand)) {
       setLoading(false);
@@ -63,14 +64,11 @@ export function CatalogProvider({ site, locale, initialData, initialDevices = []
         const data = validateCatalog(response, site.brand, locale);
         if (!data) throw new Error('Invalid brand catalog');
         setSnapshot(data);
+        setVerifiedRequest(data.packages.length ? requestKey : null);
         setError(data.packages.length ? '' : 'noPlans');
       })
       .catch(() => {
         if (!active) return;
-        setSnapshot(current => {
-          const retained = validateCatalog(current, site.brand, locale);
-          return retained ? { ...retained, packages: [] } : null;
-        });
         setError('pricesError');
       })
       .finally(() => {
@@ -82,11 +80,10 @@ export function CatalogProvider({ site, locale, initialData, initialDevices = []
         .then(response => {
           if (!active) return;
           if (!Array.isArray(response.devices)) throw new Error('Invalid device response');
-          setDevices(validDevices(response.devices));
+          setDeviceSnapshot({ locale, enabled: true, rows: validDevices(response.devices) });
         })
         .catch(() => {
           if (!active) return;
-          setDevices([]);
           setDeviceError('deviceError');
         });
     }
@@ -95,12 +92,16 @@ export function CatalogProvider({ site, locale, initialData, initialDevices = []
       active = false;
       controller.abort();
     };
-  }, [site.brand, locale, withDevices, revision, initialData, pathname]);
+  }, [site.brand, locale, withDevices, revision, initialData, pathname, requestKey]);
 
-  const data = useMemo(() => validateCatalog(snapshot, site.brand, locale), [snapshot, site.brand, locale]);
+  const data = useMemo(() => validateCatalog(snapshot, site.brand, locale)
+    || validateCatalog(initialData, site.brand, locale), [snapshot, initialData, site.brand, locale]);
+  const devices = deviceSnapshot.locale === locale && deviceSnapshot.enabled === withDevices
+    ? deviceSnapshot.rows : validDevices(initialDevices);
+  const checkoutReady = verifiedRequest === requestKey && !loading && !error && !!data?.packages.length;
   const value = useMemo(() => ({
-    data, loading, error, reload, devices, deviceError,
-  }), [data, loading, error, reload, devices, deviceError]);
+    data, loading, error, reload, devices, deviceError, checkoutReady,
+  }), [data, loading, error, reload, devices, deviceError, checkoutReady]);
   return <CatalogContext.Provider value={value}>{children}</CatalogContext.Provider>;
 }
 
@@ -111,7 +112,7 @@ export function useCatalog() {
 }
 
 export default function Catalog({ site, locale, ui, labels = {} }) {
-  const { data, loading, error, reload } = useCatalog();
+  const { data, loading, error, reload, checkoutReady } = useCatalog();
   const { checkoutLink, track } = useConsent();
   const plans = data?.packages || [];
   const provider = data?.provider_name || '';
@@ -153,13 +154,18 @@ export default function Catalog({ site, locale, ui, labels = {} }) {
                   ? t('connectionCount', { count: count(plan.max_devices) })
                   : t('confirmConnections')}</li>
               </ul>
-              {href && (
+              {href && (checkoutReady ? (
                 <a className="button button-primary plan-cta" href={href}
                   aria-label={t('checkoutLabel', { provider, duration, price: plan.price })}
                   onClick={() => track('checkout_clicked', plan.id)}>
                   {t('checkout')} <span aria-hidden="true">↗</span>
                 </a>
-              )}
+              ) : (
+                <button className="button button-primary plan-cta" type="button" disabled
+                  aria-describedby="catalog-status" aria-label={t('checkoutLabel', { provider, duration, price: plan.price })}>
+                  {t('checkout')} <span aria-hidden="true">↗</span>
+                </button>
+              ))}
             </article>
           );
         })}
@@ -184,7 +190,7 @@ export default function Catalog({ site, locale, ui, labels = {} }) {
               </tbody>
             </table>
           </div>
-          <p className="catalog-note">{t('priceNote')}</p>
+          <p className="catalog-note">{t(error === 'pricesError' ? 'pricesError' : 'priceNote')}</p>
         </section>
       )}
     </section>
