@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import BlogListing from './BlogListing';
 import Catalog from './Catalog';
 import { SupportSection } from './HomePage';
 import { useSupport } from './SupportWidget';
@@ -12,7 +13,7 @@ import GuideMedia from './GuideMedia';
 import ServiceUpdates from './ServiceUpdates';
 import VerifiedReviews from './VerifiedReviews';
 
-export default function ContentPage({ site, locale, page, pages = [], labels = {}, ui = {}, text = {}, nav = {} }) {
+export default function ContentPage({ site, locale, page, pages = [], labels = {}, ui = {}, text = {}, nav = {}, cmsBlogListing = null }) {
   const { openContact } = useSupport();
   const [origin, setOrigin] = useState('https://opplexiptv.com');
   useEffect(() => { setOrigin(new URL(centralUrl('/account', site.source)).origin); }, [site.source]);
@@ -48,6 +49,7 @@ export default function ContentPage({ site, locale, page, pages = [], labels = {
         <aside className="page-sidebar"><p className="eyebrow">{labels.setup}</p><nav aria-label={labels.pages}><Link href={pathFor(locale, 'packages')}>{labels.choosePlan}<span aria-hidden="true">↗</span></Link><Link href={pathFor(locale, 'setup')}>{labels.setup}<span aria-hidden="true">↗</span></Link><Link href={pathFor(locale, 'contact')}>{labels.contact}<span aria-hidden="true">↗</span></Link><a href={centralUrl('/account', site.source, origin)}>{labels.account}<span aria-hidden="true">↗</span></a></nav></aside>
       </div>
       {page.kind === 'blogs' && <div className="article-grid page-articles">{articles.map((article, index) => <article className="article-card" key={article.slug}><span className="article-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span><h2><Link href={pathFor(locale, article.slug)}>{article.title}</Link></h2><p>{article.description}</p><Link className="text-link" href={pathFor(locale, article.slug)}>{labels.readMore}<span aria-hidden="true">→</span></Link></article>)}</div>}
+      {page.kind === 'blogs' && cmsBlogListing && <BlogListing {...cmsBlogListing} />}
     </div>
     <SupportSection site={site} locale={locale} labels={labels} text={text} />
   </main>;

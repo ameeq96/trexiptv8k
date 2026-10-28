@@ -3,6 +3,7 @@ import { readFile, readdir, access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'node:path';
 import { site, SUPPORTED_LOCALES, pathFor } from '../lib/site.js';
+import { readBlogSnapshot, blogPublicRoutes, blogArchiveTitle } from '../lib/blogs.js';
 import { loadDictionary } from '../lib/i18n.js';
 import { availablePlans, checkoutUrl, centralUrl, newRequestId, postLanding, postResumeLink, savedPlanUrl } from '../lib/api.js';
 
@@ -242,24 +243,147 @@ for (const before of originals) {
     }
   }
 }
+const blogSnapshot = readBlogSnapshot();
+const cmsRoutes = blogPublicRoutes(blogSnapshot);
+const newCanonicals = new Set();
+for (const route of cmsRoutes) {
+  const local = pathFor(route.locale, route.slug).slice(1) + 'index.html';
+  assert.ok(!expected.has(local), local + ' CMS route cannot replace an existing route');
+  expected.add(local);
+  newCanonicals.add(route.canonical);
+  const after = await readFile(join(root, 'out', local), 'utf8');
+  const visible = visibleHtml(after);
+  const translation = route.post?.translations[route.locale];
+  const expectedTitle = translation?.seo_title || blogArchiveTitle(blogSnapshot, route.locale, route.page);
+  const expectedDescription = translation?.seo_description;
+  assert.equal(title(after), expectedTitle, local + ' CMS metadata title');
+  assert.equal(canonical(after), route.canonical, local + ' CMS canonical');
+  assert.equal(tags(after, 'link').filter(tag => tag.rel === 'canonical').length, 1, local + ' single CMS canonical');
+  assert.deepEqual(alternates(after), [...SUPPORTED_LOCALES.map(locale => locale + ':' + origin + pathFor(locale, route.slug)), 'x-default:' + origin + pathFor('en', route.slug)].sort(), local + ' real complete blog translations');
+  assert.ok(!titles.has(expectedTitle), local + ' unique CMS title'); titles.add(expectedTitle);
+  const description = meta(after, 'description')?.trim();
+  assert.ok(description && !descriptions.has(description), local + ' unique CMS description'); descriptions.add(description);
+  if (expectedDescription) assert.equal(description, expectedDescription, local + ' CMS description');
+  const htmlTag = tags(after, 'html')[0];
+  assert.equal(htmlTag.lang, route.locale, local + ' CMS HTML language');
+  assert.equal(htmlTag.dir, ['ar', 'ur'].includes(route.locale) ? 'rtl' : 'ltr', local + ' CMS HTML direction');
+  assert.equal(meta(after, 'og:url'), route.canonical, local + ' CMS OG URL');
+  assert.equal(meta(after, 'og:title'), expectedTitle, local + ' CMS OG title');
+  assert.equal(meta(after, 'og:description'), description, local + ' CMS OG description');
+  assert.equal(meta(after, 'twitter:title'), expectedTitle, local + ' CMS Twitter title');
+  assert.equal(meta(after, 'twitter:description'), description, local + ' CMS Twitter description');
+  for (const tag of tags(after, 'meta').filter(tag => /^(?:robots|googlebot|bingbot)$/i.test(tag.name || ''))) assert.doesNotMatch(tag.content || '', /\b(?:noindex|none)\b/i, local + ' public CMS route remains indexable');
+  const headings = [...visible.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/g)].map(([, level, label]) => ({ level: Number(level), label: text(label) }));
+  assert.equal(headings.filter(heading => heading.level === 1).length, 1, local + ' single CMS H1');
+  let previous = 0;
+  for (const heading of headings) {
+    assert.ok(heading.label, local + ' nonempty CMS heading');
+    assert.ok(heading.level <= previous + 1, local + ' CMS heading hierarchy');
+    previous = heading.level;
+  }
+  const ids = identifiers(visible);
+  assert.equal(new Set(ids).size, ids.length, local + ' unique CMS IDs');
+  idsByPath.set(new URL(route.canonical).pathname, new Set(ids));
+  assert.match(after, /\/_next\/static\//, local + ' CMS Next assets');
+  assert.doesNotMatch(after, /src="\/app\.js/, local + ' CMS no legacy script');
+  verifySchema(after, visible, { file: local, canonical: route.canonical, lang: route.locale }, route.slug);
+  const graph = JSON.parse(after.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+  const postings = graph.filter(node => node['@type'] === 'BlogPosting');
+  if (route.post) {
+    assert.equal(postings.length, 1, local + ' single actual BlogPosting');
+    const posting = postings[0];
+    assert.equal(posting.headline, translation.title, local + ' visible article headline');
+    assert.equal(posting.datePublished, route.post.published_at, local + ' actual publication date');
+    assert.equal(posting.dateModified, route.post.updated_at, local + ' actual modification date');
+    assert.deepEqual(posting.author, { '@type': 'Organization', name: route.post.author.name }, local + ' truthful article author');
+    assert.deepEqual(posting.image, [route.post.image], local + ' own article image');
+    assert.equal(posting.inLanguage, route.locale, local + ' article language');
+    const marker = tags(visible, 'main')[0];
+    assert.equal(marker['data-blog-id'], String(route.post.id), local + ' publication ID marker');
+    assert.equal(marker['data-blog-revision'], route.post.revision, local + ' publication revision marker');
+    assert.ok(text(visible).includes(translation.excerpt.replace(/\s+/g, ' ').trim()), local + ' article excerpt rendered');
+    for (const section of translation.sections) {
+      assert.ok(text(visible).includes(section.heading.replace(/\s+/g, ' ').trim()), local + ' article heading rendered');
+      for (const paragraph of [...section.paragraphs, ...section.items]) assert.ok(text(visible).includes(paragraph.replace(/\s+/g, ' ').trim()), local + ' article text rendered');
+    }
+  } else {
+    assert.equal(postings.length, 0, local + ' archive is not an article');
+    assert.ok(tags(visible, 'a').some(link => link.rel === 'prev'), local + ' archive has previous page');
+  }
+  for (const payload of ['index.txt', '__next._full.txt', '__next._tree.txt', '__next.$oc$segments/__PAGE__.txt']) {
+    let rsc;
+    try { rsc = await readFile(join(root, 'out', dirname(local), payload), 'utf8'); }
+    catch (error) {
+      if (error.code !== 'ENOENT' || payload !== '__next.$oc$segments/__PAGE__.txt') throw error;
+      rsc = await readFile(join(root, 'out', dirname(local), '__next.$oc$segments.__PAGE__.txt'), 'utf8');
+    }
+    assert.match(rsc, /^[\da-f]+:/m, local + ' CMS RSC payload');
+    assert.doesNotMatch(rsc, /^\s*(?:<!doctype\s+html|<html\b)/i, local + ' CMS RSC is not fallback HTML');
+  }
+  for (const image of tags(visible, 'img')) {
+    assert.ok(Object.hasOwn(image, 'alt'), local + ' CMS image alternative');
+    assert.ok(Number(image.width) > 0 && Number(image.height) > 0, local + ' CMS image dimensions');
+  }
+  for (const link of tags(visible, 'a')) {
+    assert.ok(link.href?.trim(), local + ' CMS nonempty link');
+    const url = new URL(link.href, route.canonical);
+    assert.ok(!['javascript:', 'data:'].includes(url.protocol), local + ' no unsafe link protocol');
+    if (url.origin !== origin) continue;
+    const target = url.pathname.endsWith('/') ? url.pathname + 'index.html' : url.pathname;
+    await access(join(root, 'out', decodeURIComponent(target))).catch(() => { throw new Error(local + ' CMS broken internal link: ' + url.pathname); });
+    if (url.hash) {
+      if (!idsByPath.has(url.pathname)) idsByPath.set(url.pathname, new Set(identifiers(visibleHtml(await readFile(join(root, 'out', decodeURIComponent(target)), 'utf8')))));
+      assert.ok(idsByPath.get(url.pathname).has(decodeURIComponent(url.hash.slice(1))), local + ' CMS broken fragment');
+    }
+  }
+}
+for (const locale of SUPPORTED_LOCALES) {
+  const homepage = visibleHtml(await readFile(join(root, 'out', pathFor(locale).slice(1) + 'index.html'), 'utf8'));
+  const archive = visibleHtml(await readFile(join(root, 'out', pathFor(locale, 'blogs').slice(1) + 'index.html'), 'utf8'));
+  assert.equal(tags(homepage, 'article').filter(tag => tag['data-blog-card-id']).length, Math.min(3, blogSnapshot.posts.length), locale + ' bounded latest posts');
+  assert.equal(tags(archive, 'article').filter(tag => tag['data-blog-card-id']).length, Math.min(12, blogSnapshot.posts.length), locale + ' bounded CMS archive');
+}
+
 const exported = await collect(join(root, 'out'));
 const actual = new Set(exported.map(file => relative(join(root, 'out'), file).replaceAll('\\', '/')).filter(file => !['404.html', '404/index.html', '_not-found.html', '_not-found/index.html'].includes(file)));
 assert.deepEqual([...actual].sort(), [...expected].sort(), 'Export route inventory changed');
-for (const asset of ['robots.txt', 'sitemap.xml', site.favicon]) {
+for (const asset of ['robots.txt', site.favicon]) {
   const original = await readFile(join(root, asset));
   assert.ok(original.equals(await readFile(join(root, 'public', asset))), asset + ' public copy changed');
   assert.ok(original.equals(await readFile(join(root, 'out', asset))), asset + ' exported copy changed');
 }
 const sitemap = await readFile(join(root, 'out', 'sitemap.xml'), 'utf8');
-assert.equal([...sitemap.matchAll(/<loc>/g)].length, 190, 'Sitemap page count');
-assert.deepEqual([...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, url]) => decode(url)).sort(), originals.map(route => route.canonical).sort(), 'Sitemap matches canonical route inventory');
+const sourceSitemap = await readFile(join(root, 'sitemap.xml'));
+assert.ok(sourceSitemap.equals(await readFile(join(root, 'public', 'sitemap.xml'))), 'Original sitemap template preserved');
+const actualSitemapUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, url]) => decode(url));
+assert.equal(new Set(actualSitemapUrls).size, expected.size, 'Unique complete sitemap URLs');
+assert.deepEqual(actualSitemapUrls.sort(), [...originals.map(route => route.canonical), ...newCanonicals].sort(), 'Sitemap matches legacy and CMS routes');
+const entries = new Map([...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(([, entry]) => [decode(entry.match(/<loc>([^<]+)<\/loc>/)[1]), entry]));
+for (const [, entry] of sourceSitemap.toString('utf8').matchAll(/<url>([\s\S]*?)<\/url>/g)) {
+  const url = decode(entry.match(/<loc>([^<]+)<\/loc>/)[1]);
+  const listing = SUPPORTED_LOCALES.some(locale => url === origin + pathFor(locale) || url === origin + pathFor(locale, 'blogs'));
+  if (listing && blogSnapshot.posts.length) {
+    assert.equal(entries.get(url).replace(/<lastmod>[^<]+<\/lastmod>/, ''), entry.replace(/<lastmod>[^<]+<\/lastmod>/, ''), 'Only visible listing modification dates may change: ' + url);
+    assert.ok(Number.isFinite(Date.parse(entries.get(url).match(/<lastmod>([^<]+)<\/lastmod>/)?.[1])), 'Visible listing has a real modification date');
+  } else assert.equal(entries.get(url), entry, 'Unchanged legacy sitemap dates and alternates: ' + url);
+}
+for (const route of cmsRoutes) {
+  const entry = entries.get(route.canonical);
+  assert.ok(entry, 'CMS sitemap entry');
+  const modified = entry.match(/<lastmod>([^<]+)<\/lastmod>/)?.[1];
+  assert.ok(modified && Number.isFinite(Date.parse(decode(modified))), 'Actual CMS modification date');
+  if (route.post) assert.equal(decode(modified), route.post.updated_at, 'Article lastmod');
+  const languageLinks = tags(entry, 'xhtml:link').map(link => link.hreflang + ':' + link.href).sort();
+  assert.deepEqual(languageLinks, [...SUPPORTED_LOCALES.map(locale => locale + ':' + origin + pathFor(locale, route.slug)), 'x-default:' + origin + pathFor('en', route.slug)].sort(), 'CMS sitemap translation cluster');
+}
+assert.equal(actualSitemapUrls.length, expected.size, 'Sitemap route count');
 assert.equal(SUPPORTED_LOCALES.length, 10);
 assert.equal(centralUrl('https://example.net/checkout'), null, 'Foreign checkout blocked');
 assert.equal(checkoutUrl(-1, site.source), null, 'Invalid package blocked');
 assert.match(checkoutUrl(148, site.source), new RegExp('utm_source=' + site.source));
 assert.match(newRequestId(), /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 assert.equal(availablePlans([{ id: 1, type: 'iptv', is_available: false, price_amount: 9, duration_months: 1, currency: 'USD' }]).length, 0);
-for (const component of ['SiteHeader', 'SiteFooter', 'HomePage', 'ContentPage']) {
+for (const component of ['SiteHeader', 'SiteFooter', 'HomePage', 'ContentPage', 'BlogArticle', 'BlogListing']) {
   const source = await readFile(join(root, 'components', component + '.jsx'), 'utf8');
   assert.match(source, /import\s+Link\s+from\s+['"]next\/link['"]/, component + ' Next Link import');
   assert.match(source, /<Link\b/, component + ' client-side navigation');
@@ -317,4 +441,5 @@ try {
   globalThis.fetch = async () => { calls++; return new Response('{}', { status: 429 }); };
   await assert.rejects(() => postResumeLink({ brand: site.brand }), error => error.status === 429);
 } finally { globalThis.fetch = originalFetch; }
-console.log(site.domain + ': 190 Next routes, 10 languages, metadata/hreflang/schema, all internal links, Next Link source, 760 RSC payloads, legacy removal and unchanged sitemap/robots/favicon verified. ' + calls + ' mocked form responses checked; no real submissions.');
+assert.doesNotMatch(await readFile(join(root, 'components', 'BlogArticle.jsx'), 'utf8'), /dangerouslySetInnerHTML/, 'CMS article content stays escaped');
+console.log(site.domain + ': ' + expected.size + ' Next routes (190 preserved), 10 languages, metadata/hreflang/schema, all internal links, CMS article markers, ' + expected.size * 4 + ' RSC payloads, generated sitemap and unchanged robots/favicon verified. ' + calls + ' mocked form responses checked; no real submissions.');

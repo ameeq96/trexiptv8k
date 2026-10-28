@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import BlogListing from './BlogListing';
 import Catalog, { useCatalog } from './Catalog';
 import { useSupport } from './SupportWidget';
 import { copy, pathFor } from '../lib/site';
@@ -39,7 +40,7 @@ export function SupportSection({ site, locale, text = {}, labels = {} }) {
   </div></section>;
 }
 
-export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}, nav = {}, pages = [] }) {
+export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}, nav = {}, pages = [], cmsLatestBlogs = null }) {
   const { data, loading, devices, deviceError } = useCatalog();
   const t = value => copy(value, text);
   const theme = brandCopy[site.brand];
@@ -96,6 +97,7 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
         <Link className="text-link" href={pathFor(locale, 'contact') + '#service-status'}>{experienceUi.statusHeading}<span aria-hidden="true">→</span></Link></div>
       <VerifiedReviews locale={locale} />
     </section>}
+    {cmsLatestBlogs && <BlogListing {...cmsLatestBlogs} mode="latest" />}
     <SupportSection site={site} locale={locale} labels={labels} text={text} />
   </main>;
 }

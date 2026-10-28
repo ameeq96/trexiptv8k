@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --webpack --hostname 127.0.0.1 --port 8101",
-    "build": "next build --webpack",
+    "build": "node scripts/sync-blogs.mjs && next build --webpack && node scripts/build-blog-sitemap.mjs",
     "verify": "node scripts/verify-next.mjs"
   },
   "dependencies": {
