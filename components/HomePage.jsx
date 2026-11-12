@@ -71,7 +71,7 @@ export default function HomePage({ site, locale, ui = {}, text = {}, labels = {}
     <div className="source-strip"><div className="container source-strip-inner"><p><span className="source-dot" aria-hidden="true" />{t(theme.catalogue)}</p><Link href={pathFor(locale, 'about')}>{nav.about}<span aria-hidden="true">↗</span></Link></div></div>
 
     <section className="section plans-section" id="plans" aria-labelledby="plans-heading"><div className="container plans-layout">
-      <div className="section-heading plans-heading"><div><p className="eyebrow">{t(theme.plans)}</p><h2 id="plans-heading">{nav.packages || labels.packages}</h2></div><p>{t('Prices and availability come from Opplex IPTV. Review your final order details before paying.')}</p></div>
+      <div className="section-heading plans-heading"><div><p className="eyebrow">{t(theme.plans)}</p><h2 id="plans-heading">{nav.packages || labels.packages}</h2></div><p>{t('Prices and availability come from Opplex IPTV. Review your final order details before paying.').split(/(Opplex IPTV)/).map((part, index) => part === 'Opplex IPTV' ? <a key={index} href="https://opplexiptv.com/iptv-home">{part}</a> : part)}</p></div>
       <Catalog site={site} locale={locale} ui={ui} labels={{ retry: labels.retry }} />
     </div></section>
 
