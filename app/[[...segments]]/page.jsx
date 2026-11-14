@@ -127,7 +127,7 @@ export default async function Page({ params }) {
   const planServices = [...new Set(plans.map(item => item.service || initialData.provider_name))];
   const structuredData = { ...schema, '@graph': [
     ...schema['@graph'].map(node => node['@type'] === 'WebSite' ? { ...node, publisher: { '@id': organizationId } } : node),
-    { '@type': 'Organization', '@id': organizationId, name: site.name, url: origin + '/', logo: origin + '/' + site.favicon,
+    { '@type': 'Organization', '@id': organizationId, name: site.name, url: origin + '/', logo: origin + '/' + site.favicon, parentOrganization: { '@type': 'Organization', name: 'Opplex IPTV Subscription Services', url: 'https://opplexiptv.com/' },
       ...(support.email || support.phone_display ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support',
         ...(support.email ? { email: support.email } : {}), ...(support.phone_display ? { telephone: support.phone_display } : {}) } } : {}) },
     ...(faqRows.length ? [{ '@type': 'FAQPage', '@id': url + '#faq', inLanguage: locale,
