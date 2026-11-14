@@ -81,7 +81,7 @@ export async function generateMetadata({ params }) {
     metadataBase: new URL(origin), title, description,
 
     alternates: { canonical: url, languages: Object.fromEntries([...SUPPORTED_LOCALES.map(code => [code, origin + pathFor(code, slug)]), ['x-default', origin + pathFor('en', slug)]]) },
-    openGraph: { type: cms.post ? 'article' : 'website', ...(cms.post ? { publishedTime: cms.post.published_at, modifiedTime: cms.post.updated_at } : {}), siteName: site.name, url, title: cms.post || archive || page ? title : original.ogTitle, description: cms.post || archive || page ? description : original.ogDescription, locale, images: [{ url: origin + '/share-card.png', width: 1200, height: 630, alt: site.name }] },
+    openGraph: { type: cms.post ? 'article' : 'website', ...(cms.post ? { publishedTime: cms.post.published_at, modifiedTime: cms.post.updated_at } : {}), siteName: site.name, url, title: cms.post || archive || page ? title : original.ogTitle, description: cms.post || archive || page ? description : original.ogDescription, locale: { en: 'en_US', es: 'es_ES', fr: 'fr_FR', it: 'it_IT', nl: 'nl_NL', pt: 'pt_PT', ru: 'ru_RU', ur: 'ur_PK', ar: 'ar_AR', hi: 'hi_IN' }[locale], images: [{ url: origin + '/share-card.png', width: 1200, height: 630, alt: site.name }] },
     twitter: { card: 'summary_large_image', title: cms.post || archive || page ? title : original.twitterTitle, description: cms.post || archive || page ? description : original.twitterDescription, images: [origin + '/share-card.png'] },
     icons: { icon: { url: '/' + site.favicon + '?v=20261017', type: site.favicon.endsWith('.svg') ? 'image/svg+xml' : 'image/webp', ...(site.favicon.endsWith('.svg') ? { sizes: 'any' } : {}) } },
   };
