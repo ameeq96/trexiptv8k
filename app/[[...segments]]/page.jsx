@@ -100,7 +100,7 @@ export default async function Page({ params }) {
   const url = origin + pathFor(locale, slug);
   const translation = cms.post?.translations[locale];
   const archiveTitle = archive ? blogArchiveTitle(snapshot, locale, cms.page) : null;
-  const heading = translation?.title || archiveTitle || page?.title;
+  const heading = translation?.title || (archive ? snapshot.labels[locale].blogArchive + ' — ' + snapshot.labels[locale].pageLabel.replace('{page}', String(cms.page)) : page?.title);
   const title = translation?.seo_title || archiveTitle || page?.title;
   const description = translation?.seo_description || (archive ? data.pages.find(item => item.slug === 'blogs').description + ' ' + snapshot.labels[locale].pageLabel.replace('{page}', String(cms.page)) : page?.description);
   const article = Boolean(cms.post) || page?.kind === 'article';
@@ -116,6 +116,8 @@ export default async function Page({ params }) {
       mainEntityOfPage: { '@id': url + '#webpage' }, datePublished: cms.post.published_at, dateModified: cms.post.updated_at,
       author: { '@type': cms.post.author.type, name: cms.post.author.name }, publisher: { '@type': cms.post.author.type, name: cms.post.author.name },
       image: [cms.post.image], inLanguage: locale }] : []),
+    ...(!cms.post && page?.kind === 'article' ? [{ '@type': 'Article', '@id': url + '#article', headline: page.title, description: page.description,
+      mainEntityOfPage: { '@id': url + '#webpage' }, author: { '@id': origin + '/#organization' }, publisher: { '@id': origin + '/#organization' }, inLanguage: locale }] : []),
   ] } : homeMetadata(locale).schema;
   const organizationId = origin + '/#organization';
   const support = initialData.support || {};
@@ -146,7 +148,7 @@ export default async function Page({ params }) {
         <SiteHeader {...props} slug={slug} />
         {cms.post ? <BlogArticle site={site} locale={locale} post={cms.post} labels={snapshot.labels[locale]} nav={nav}
           relatedPages={data.pages.filter(item => ['setup', 'iptv-applications', 'faqs'].includes(item.slug))} />
-          : archive ? <BlogListing {...listing} mode="archive" title={archiveTitle} nav={nav} />
+          : archive ? <BlogListing {...listing} mode="archive" title={heading} nav={nav} />
           : page ? <ContentPage {...props} page={page} pages={data.pages} cmsBlogListing={slug === 'blogs' ? listing : null} />
           : <HomePage {...props} pages={data.pages} cmsLatestBlogs={{ ...listing, items: blogSummaries(snapshot, locale, 1, 3) }} />}
         <SiteFooter {...props} />
