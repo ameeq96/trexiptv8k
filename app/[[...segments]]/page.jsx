@@ -117,13 +117,32 @@ export default async function Page({ params }) {
       author: { '@type': cms.post.author.type, name: cms.post.author.name }, publisher: { '@type': cms.post.author.type, name: cms.post.author.name },
       image: [cms.post.image], inLanguage: locale }] : []),
   ] } : homeMetadata(locale).schema;
+  const organizationId = origin + '/#organization';
+  const support = initialData.support || {};
+  const faqRows = !slug ? (initialData.content.faqs || []).map(item => [item.question, item.answer])
+    : slug === 'faqs' ? page.sections.filter(row => /[?？؟]\s*$/.test(row.heading)).map(row => [row.heading, row.body]) : [];
+  const plans = !slug || page?.kind === 'packages' ? (initialData.packages || []).filter(item => Number(item.price_amount) > 0 && item.currency) : [];
+  const planServices = [...new Set(plans.map(item => item.service || initialData.provider_name))];
+  const structuredData = { ...schema, '@graph': [
+    ...schema['@graph'].map(node => node['@type'] === 'WebSite' ? { ...node, publisher: { '@id': organizationId } } : node),
+    { '@type': 'Organization', '@id': organizationId, name: site.name, url: origin + '/', logo: origin + '/' + site.favicon,
+      ...(support.email || support.phone_display ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support',
+        ...(support.email ? { email: support.email } : {}), ...(support.phone_display ? { telephone: support.phone_display } : {}) } } : {}) },
+    ...(faqRows.length ? [{ '@type': 'FAQPage', '@id': url + '#faq', inLanguage: locale,
+      mainEntity: faqRows.map(([name, answer]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text: answer } })) }] : []),
+    ...planServices.map((service, index) => ({ '@type': 'Product', '@id': url + '#plans-' + (index + 1), name: service,
+      description: page?.description || initialData.content.hero_description, image: origin + '/share-card.png', brand: { '@type': 'Brand', name: service },
+      offers: plans.filter(item => (item.service || initialData.provider_name) === service).map(item => ({ '@type': 'Offer', name: item.title,
+        price: Number(item.price_amount).toFixed(2), priceCurrency: item.currency,
+        availability: 'https://schema.org/' + (item.is_available ? 'InStock' : 'OutOfStock'), url: origin + pathFor(locale, 'packages') })) })),
+  ] };
   const props = { site, locale, text, ui: { ...ui, retry: data.labels.retry }, nav, labels: data.labels, pageSlug: slug, experienceUi: initialData.experience?.ui || {} };
   const listing = { locale, labels: snapshot.labels[locale], page: cms.page || 1, pageCount: blogPageCount(snapshot),
     items: blogSummaries(snapshot, locale, cms.page || 1) };
   return <ConsentProvider {...props}>
     <CatalogProvider site={site} locale={locale} initialData={initialData} initialDevices={initialDevices} withDevices={!slug}>
       <SupportProvider {...props}>
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, '\\u003c') }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
         <SiteHeader {...props} slug={slug} />
         {cms.post ? <BlogArticle site={site} locale={locale} post={cms.post} labels={snapshot.labels[locale]} nav={nav}
           relatedPages={data.pages.filter(item => ['setup', 'iptv-applications', 'faqs'].includes(item.slug))} />
