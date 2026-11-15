@@ -123,6 +123,8 @@ export default async function Page({ params }) {
   const support = initialData.support || {};
   const faqRows = !slug ? (initialData.content.faqs || []).map(item => [item.question, item.answer])
     : slug === 'faqs' ? page.sections.filter(row => /[?？؟]\s*$/.test(row.heading)).map(row => [row.heading, row.body]) : [];
+  const howTo = slug === 'setup' ? page.sections.map(row => [row.heading, row.body.split(/(?:^|\s+)(\d+)\.\s+/)])
+    .find(([, parts]) => parts.length >= 7 && parts.every((part, index) => index % 2 === 0 || Number(part) === (index + 1) / 2)) : null;
   const plans = !slug || page?.kind === 'packages' ? (initialData.packages || []).filter(item => Number(item.price_amount) > 0 && item.currency) : [];
   const planServices = [...new Set(plans.map(item => item.service || initialData.provider_name))];
   const structuredData = { ...schema, '@graph': [
@@ -132,6 +134,9 @@ export default async function Page({ params }) {
         ...(support.email ? { email: support.email } : {}), ...(support.phone_display ? { telephone: support.phone_display } : {}) } } : {}) },
     ...(faqRows.length ? [{ '@type': 'FAQPage', '@id': url + '#faq', inLanguage: locale,
       mainEntity: faqRows.map(([name, answer]) => ({ '@type': 'Question', name, acceptedAnswer: { '@type': 'Answer', text: answer } })) }] : []),
+    ...(howTo ? [{ '@type': 'HowTo', '@id': url + '#howto', name: howTo[0], inLanguage: locale,
+      step: howTo[1].filter((part, index) => index && index % 2 === 0).map((text, index, steps) => ({ '@type': 'HowToStep', position: index + 1,
+        text: (index === steps.length - 1 ? text.replace(/([.!?])\s[\s\S]*$/, '$1') : text).trim() })) }] : []),
     ...planServices.map((service, index) => ({ '@type': 'Product', '@id': url + '#plans-' + (index + 1), name: service,
       description: page?.description || initialData.content.hero_description, image: origin + '/share-card.png', brand: { '@type': 'Brand', name: service },
       offers: plans.filter(item => (item.service || initialData.provider_name) === service).map(item => ({ '@type': 'Offer', name: item.title,
