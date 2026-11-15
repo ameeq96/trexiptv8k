@@ -114,7 +114,7 @@ export default async function Page({ params }) {
     ] },
     ...(cms.post ? [{ '@type': 'BlogPosting', '@id': url + '#article', headline: translation.title, description: translation.seo_description,
       mainEntityOfPage: { '@id': url + '#webpage' }, datePublished: cms.post.published_at, dateModified: cms.post.updated_at,
-      author: { '@type': cms.post.author.type, name: cms.post.author.name }, publisher: { '@type': cms.post.author.type, name: cms.post.author.name },
+      author: { '@type': cms.post.author.type, name: cms.post.author.name }, publisher: { '@id': origin + '/#organization' },
       image: [cms.post.image], inLanguage: locale }] : []),
     ...(!cms.post && page?.kind === 'article' ? [{ '@type': 'Article', '@id': url + '#article', headline: page.title, description: page.description,
       mainEntityOfPage: { '@id': url + '#webpage' }, author: { '@id': origin + '/#organization' }, publisher: { '@id': origin + '/#organization' }, inLanguage: locale }] : []),
@@ -127,7 +127,7 @@ export default async function Page({ params }) {
   const planServices = [...new Set(plans.map(item => item.service || initialData.provider_name))];
   const structuredData = { ...schema, '@graph': [
     ...schema['@graph'].map(node => node['@type'] === 'WebSite' ? { ...node, publisher: { '@id': organizationId } } : node),
-    { '@type': 'Organization', '@id': organizationId, name: site.name, url: origin + '/', logo: origin + '/' + site.favicon, parentOrganization: { '@type': 'Organization', name: 'Opplex IPTV Subscription Services', url: 'https://opplexiptv.com/' },
+    { '@type': 'Organization', '@id': organizationId, name: site.name, url: origin + '/', logo: origin + '/' + site.favicon, address: { '@type': 'PostalAddress', addressLocality: 'Saskatoon', addressRegion: 'SK', addressCountry: 'CA' }, parentOrganization: { '@type': 'Organization', name: 'Opplex IPTV Subscription Services', url: 'https://opplexiptv.com/' },
       ...(support.email || support.phone_display ? { contactPoint: { '@type': 'ContactPoint', contactType: 'customer support',
         ...(support.email ? { email: support.email } : {}), ...(support.phone_display ? { telephone: support.phone_display } : {}) } } : {}) },
     ...(faqRows.length ? [{ '@type': 'FAQPage', '@id': url + '#faq', inLanguage: locale,

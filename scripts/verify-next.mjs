@@ -295,7 +295,7 @@ for (const route of cmsRoutes) {
     assert.equal(posting.headline, translation.title, local + ' visible article headline');
     assert.equal(posting.datePublished, route.post.published_at, local + ' actual publication date');
     assert.equal(posting.dateModified, route.post.updated_at, local + ' actual modification date');
-    assert.deepEqual(posting.author, { '@type': 'Organization', name: route.post.author.name }, local + ' truthful article author');
+    assert.deepEqual(posting.author, { '@type': route.post.author.type, name: route.post.author.name }, local + ' truthful article author');
     assert.deepEqual(posting.image, [route.post.image], local + ' own article image');
     assert.equal(posting.inLanguage, route.locale, local + ' article language');
     const marker = tags(visible, 'main')[0];
